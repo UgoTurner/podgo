@@ -1,0 +1,82 @@
+[
+    {
+      "Name": "side",
+      "Title" : "Podcasts",
+      "Highlight": true, 
+      "Frame": true,
+      "Overwrite": false,
+      "Hidden": false,
+      "Coordinate":
+        {
+          "TopLeftXrel" : 0,
+          "TopLeftYrel" : 0,
+          "BottomRightXrel": 0.3,
+          "BottomRightYrel": 0.936
+        },
+		  "SelectionColor": {
+        "BgColorCurrent": "green", "FgColorCurrent": "black",
+			  "BgColorActive": "green", "FgColorActive": "black",
+		    "BgColorUnactive": "default", "FgColorUnactive": "white"
+		  }
+    },
+    {
+      "Name": "main-primary",
+      "Title" : "Tracks",
+      "Highlight": true, 
+      "Frame": true,
+      "Overwrite": false,
+      "Hidden": false,
+      "Coordinate":
+        {
+          "TopLeftXrel" : 0.31,
+          "TopLeftYrel" : 0,
+          "BottomRightXrel": 0.999,
+          "BottomRightYrel": 0.936
+        },
+		  "SelectionColor": {
+        "BgColorCurrent": "default", "FgColorCurrent": "white",
+			  "BgColorActive": "green", "FgColorActive": "black",
+		    "BgColorUnactive": "default", "FgColorUnactive": "white"
+		  }
+    },
+    {
+      "Name": "footer",
+      "Title" : "",
+      "Highlight": false, 
+      "Frame": true,
+      "Overwrite": false,
+      "Hidden": false,
+      "Coordinate":
+        {
+          "TopLeftXrel" : 0,
+          "TopLeftYrel" : 0.94,
+          "BottomRightXrel": 0.999,
+          "BottomRightYrel": 0.999
+        },
+		  "SelectionColor": {
+        "BgColorCurrent": "default", "FgColorCurrent": "white",
+			  "BgColorActive": "green", "FgColorActive": "black",
+		    "BgColorUnactive": "default", "FgColorUnactive": "white"
+		  }
+    },
+    {
+      "Name": "main-secondary",
+      "Title" : "",
+      "Highlight": true, 
+      "Frame": true,
+      "Overwrite": false,
+      "Hidden": true,
+      "Coordinate":
+        {
+          "TopLeftXrel" : 0.31,
+          "TopLeftYrel" : 0,
+          "BottomRightXrel": 0.999,
+          "BottomRightYrel": 0.936
+        },
+		  "SelectionColor": {
+        "BgColorCurrent": "default", "FgColorCurrent": "white",
+			  "BgColorActive": "green", "FgColorActive": "black",
+		    "BgColorUnactive": "default", "FgColorUnactive": "white"
+		  }
+    }
+  ]
