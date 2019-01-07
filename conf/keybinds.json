@@ -1,0 +1,78 @@
+[
+  {
+    "ViewName" : "",
+    "Keybinds":
+      [
+        {
+          "Key" : "ctrlC",
+          "Action" : "Shutdown"
+        },
+        {
+          "Key" : "ctrlSpace",
+          "Action" : "TogglePlayPause"
+        }
+      ]
+  },
+  {
+    "ViewName" : "side",
+    "Keybinds":
+      [
+        {
+          "Key" : "arrowUp",
+          "Action" : "PreviousPodcast"
+        },
+        {
+          "Key" : "arrowDown",
+          "Action" : "NextPodcast"
+        },
+        {
+          "Key" : "arrowRight",
+          "Action" : "EnterTracksList"
+        }
+      ]
+  },
+  {
+    "ViewName" : "main-primary",
+    "Keybinds":
+      [
+        {
+          "Key" : "arrowUp",
+          "Action" : "PreviousTrack"
+        },
+        {
+          "Key" : "arrowDown",
+          "Action" : "NextTrack"
+        },
+        {
+          "Key" : "arrowLeft",
+          "Action" : "EnterPodcastsList"
+        },
+        {
+          "Key" : "arrowRight",
+          "Action" : "EnterTrackDescription"
+        },
+        {
+          "Key" : "ctrlD",
+          "Action" : "DownloadTrack"
+        },
+        {
+          "Key" : "ctrlP",
+          "Action" : "PlayTrack"
+        }
+      ]
+  },
+  {
+    "ViewName" : "main-secondary",
+    "Keybinds":
+      [
+        {
+          "Key" : "arrowLeft",
+          "Action" : "EnterPodcastsListFromDescription"
+        },
+        {
+          "Key" : "ctrlD",
+          "Action" : "DownloadTrack"
+        }
+      ]
+  }
+]
