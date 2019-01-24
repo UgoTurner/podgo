@@ -47,6 +47,8 @@ func (a *AppHandler) Handle(eventName string) error {
 		return a.playTrack()
 	case "TogglePlayPause":
 		return a.togglePlayPause()
+	case "SeekForward":
+		return a.seekForward()
 	default:
 		return nil
 	}
@@ -125,6 +127,13 @@ func (a *AppHandler) extractFileName(url string) string {
 }
 
 func (a *AppHandler) downloadTrack() error {
+	if a.FeedParser.GetCurrentItemLocalFileName() != "" {
+		a.Render.UpdateTextView(
+			conf.FooterViewName,
+			"Already downloaded",
+		)
+		return nil
+	}
 	fileName := a.extractFileName(a.FeedParser.GetCurrentItemUrl())
 	a.Render.UpdateTextView(
 		conf.FooterViewName,
@@ -176,17 +185,32 @@ func (a *AppHandler) enterTrackDescription() error {
 func (a *AppHandler) enterPodcastsListFromDescription() error {
 	a.Render.Hide(conf.MainDetailsViewName)
 	a.Render.Focus(conf.MainViewName)
+
 	return nil
 }
 
 func (a *AppHandler) playTrack() error {
-	a.Player.Play(conf.TracksPath + a.FeedParser.GetCurrentItemLocalFileName())
+	a.Player.Play(
+		conf.TracksPath+a.FeedParser.GetCurrentItemLocalFileName(),
+		func(s string) {
+			a.Render.UpdateTextView(
+				conf.FooterViewName,
+				s,
+			)
+		},
+	)
 
 	return nil
 }
 
 func (a *AppHandler) togglePlayPause() error {
 	a.Player.TogglePlayPause()
+
+	return nil
+}
+
+func (a *AppHandler) seekForward() error {
+	a.Player.Seek(10)
 
 	return nil
 }

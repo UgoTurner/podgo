@@ -28,6 +28,8 @@ func gocuiAdapt(keyStr string) gocui.Key {
 		return gocui.KeyCtrlP
 	case "ctrlSpace":
 		return gocui.KeyCtrlSpace
+	case "ctrlF":
+		return gocui.KeyCtrlF
 	default:
 		log.Panicln("Unkown keybind : " + keyStr)
 		return gocui.KeyCtrl2
