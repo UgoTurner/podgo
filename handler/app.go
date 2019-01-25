@@ -1,6 +1,7 @@
 package handler
 
 import (
+	"os"
 	"strings"
 
 	"github.com/ugo/podcastor/conf"
@@ -151,7 +152,7 @@ func (a *AppHandler) downloadTrack() error {
 		func() {
 			a.Render.UpdateTextView(
 				conf.FooterViewName,
-				"Successfully donwload '"+fileName+"' !",
+				"Successfully download '"+fileName+"' !",
 			)
 			a.FeedParser.SetCurrentItemLocalFileName(fileName)
 			a.Render.UpdateListView(
@@ -190,12 +191,23 @@ func (a *AppHandler) enterPodcastsListFromDescription() error {
 }
 
 func (a *AppHandler) playTrack() error {
+	track := a.FeedParser.GetCurrentFeedName() + " - " + a.FeedParser.GetCurrentItemName()
+	file := conf.TracksPath + a.FeedParser.GetCurrentItemLocalFileName()
+	if _, err := os.Stat(file); os.IsNotExist(err) {
+		a.Render.UpdateTextView(
+			conf.FooterViewName,
+			"Track is not downloaded yet.",
+		)
+		a.downloadTrack()
+		a.playTrack()
+		return nil
+	}
 	a.Player.Play(
-		conf.TracksPath+a.FeedParser.GetCurrentItemLocalFileName(),
+		file,
 		func(s string) {
 			a.Render.UpdateTextView(
 				conf.FooterViewName,
-				s,
+				s+" ~ "+track,
 			)
 		},
 	)
@@ -211,6 +223,12 @@ func (a *AppHandler) togglePlayPause() error {
 
 func (a *AppHandler) seekForward() error {
 	a.Player.Seek(10)
+
+	return nil
+}
+
+func (a *AppHandler) seekBackward() error {
+	a.Player.Seek(-10)
 
 	return nil
 }
