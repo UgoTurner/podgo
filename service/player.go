@@ -44,6 +44,7 @@ func (p *Player) handleProgression(progress playerProgress) {
 	go p.handleProgression(progress)
 
 }
+
 func (p *Player) Play(path string, progress playerProgress) {
 	f, err := os.Open(path)
 	if err != nil {
@@ -58,7 +59,7 @@ func (p *Player) Play(path string, progress playerProgress) {
 	speaker.Play(beep.Seq(p.Control, beep.Callback(func() {
 		p.Playing = false
 	})))
-	p.handleProgression(progress)
+	//p.handleProgression(progress)
 }
 
 func (p *Player) TogglePlayPause() {

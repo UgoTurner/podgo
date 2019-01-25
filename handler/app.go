@@ -196,10 +196,8 @@ func (a *AppHandler) playTrack() error {
 	if _, err := os.Stat(file); os.IsNotExist(err) {
 		a.Render.UpdateTextView(
 			conf.FooterViewName,
-			"Track is not downloaded yet.",
+			"This track is not downloaded yet.",
 		)
-		a.downloadTrack()
-		a.playTrack()
 		return nil
 	}
 	a.Player.Play(
