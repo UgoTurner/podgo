@@ -2,59 +2,63 @@ package service
 
 import (
 	"log"
+	"math"
 	"os"
 	"strconv"
 	"time"
 
-	"github.com/ugo/beep"
-	"github.com/ugo/beep/mp3"
-	"github.com/ugo/beep/speaker"
+	"github.com/faiface/beep"
+	"github.com/faiface/beep/mp3"
+	"github.com/faiface/beep/speaker"
 )
 
 type Player struct {
-	Control *beep.Ctrl
-	Stream  beep.StreamSeekCloser
-	Playing bool
+	Control    *beep.Ctrl
+	Stream     beep.StreamSeekCloser
+	SampleRate beep.SampleRate
+	Playing    bool
 }
 
 type playerProgress func(string)
+
+func (p *Player) durationToString(duration time.Duration) string {
+
+	hours := int64(math.Mod(duration.Hours(), 24))
+	minutes := int64(math.Mod(duration.Minutes(), 60))
+	seconds := int64(math.Mod(duration.Seconds(), 60))
+
+	return strconv.Itoa(int(hours)) + ":" +
+		strconv.Itoa(int(minutes)) + ":" +
+		strconv.Itoa(int(seconds))
+
+}
 
 func (p *Player) handleProgression(progress playerProgress) {
 	if !p.Playing {
 		return
 	}
-	progress("Durée : " + strconv.Itoa(p.Stream.Len()) + " -- Pos : " + strconv.Itoa(p.Stream.Position()))
+	totalDuration := p.durationToString(p.SampleRate.D(p.Stream.Len()))
+	current := p.durationToString(p.SampleRate.D(p.Stream.Position()))
+	progress(current + " / " + totalDuration)
 	time.Sleep(1 * time.Second)
 	go p.handleProgression(progress)
 
 }
 func (p *Player) Play(path string, progress playerProgress) {
 	f, err := os.Open(path)
-	// Check for errors when opening the file
 	if err != nil {
 		log.Fatal(path)
 	}
-
-	// Decode the .mp3 File, if you have a .wav file, use wav.Decode(f)
 	s, format, _ := mp3.Decode(f)
 	p.Stream = s
-	p.Control = &beep.Ctrl{Streamer: s, Paused: false}
-
-	// Init the Speaker with the SampleRate of the format and a buffer size of 1/10s
+	p.SampleRate = format.SampleRate
+	p.Control = &beep.Ctrl{Streamer: p.Stream, Paused: false}
 	speaker.Init(format.SampleRate, format.SampleRate.N(time.Second/10))
-
-	// Channel, which will signal the end of the playback.
-	//playing := make(chan struct{})
 	p.Playing = true
-	// Now we Play our Streamer on the Speaker
 	speaker.Play(beep.Seq(p.Control, beep.Callback(func() {
-		// Callback after the stream Ends
-		//close(playing)
 		p.Playing = false
 	})))
 	p.handleProgression(progress)
-
-	//	<-playing
 }
 
 func (p *Player) TogglePlayPause() {
@@ -65,6 +69,6 @@ func (p *Player) TogglePlayPause() {
 
 func (p *Player) Seek(sec int) {
 	speaker.Lock()
-	p.Stream.Seek(1)
+	p.Stream.Seek(p.Stream.Position() + sec*int(p.SampleRate))
 	speaker.Unlock()
 }

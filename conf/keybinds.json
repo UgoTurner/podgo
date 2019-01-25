@@ -15,6 +15,11 @@
           "Key" : "ctrlF",
           "Action" : "SeekForward"
         }
+        ,
+        {
+          "Key" : "ctrlB",
+          "Action" : "SeekBackward"
+        }
       ]
   },
   {
