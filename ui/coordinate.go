@@ -1,15 +1,23 @@
 package ui
 
 type Coordinate struct {
-	TopLeftXrel, TopLeftYrel, BottomRightXrel, BottomRightYrel float32
+	TopLeftXrel, TopLeftYrel, BottomRightXrel, BottomRightYrel int
 	TopLeftXabs, TopLeftYabs, BottomRightXabs, BottomRightYabs int
 }
 
 func (c *Coordinate) Scale(maxX, maxY int) {
-	c.TopLeftXabs = int(c.TopLeftXrel * float32(maxX))
-	c.TopLeftYabs = int(c.TopLeftYrel * float32(maxY))
-	c.BottomRightXabs = int(c.BottomRightXrel * float32(maxX))
-	c.BottomRightYabs = int(c.BottomRightYrel * float32(maxY))
+	if c.TopLeftXrel != 0 {
+		c.TopLeftXabs = maxX + c.TopLeftXrel
+	}
+	if c.TopLeftYrel != 0 {
+		c.TopLeftYabs = maxY + c.TopLeftYrel
+	}
+	if c.BottomRightXrel != 0 {
+		c.BottomRightXabs = maxX + c.BottomRightXrel
+	}
+	if c.BottomRightYrel != 0 {
+		c.BottomRightYabs = maxY + c.BottomRightYrel
+	}
 }
 
 func (c *Coordinate) SetVisibility(isHidden bool) {
