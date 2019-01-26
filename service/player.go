@@ -12,10 +12,11 @@ import (
 )
 
 type Player struct {
-	Control    *beep.Ctrl
-	Stream     beep.StreamSeekCloser
-	SampleRate beep.SampleRate
-	Playing    bool
+	Control          *beep.Ctrl
+	Stream           beep.StreamSeekCloser
+	SampleRate       beep.SampleRate
+	Playing          bool
+	PlayingTrackName string
 }
 
 type playerProgress func(string)
@@ -33,22 +34,26 @@ func (p *Player) durationToString(duration time.Duration) string {
 }
 
 func (p *Player) handleProgression(progress playerProgress) {
-	if !p.Playing {
+	if p.Control == nil {
 		return
 	}
 	totalDuration := p.durationToString(p.SampleRate.D(p.Stream.Len()))
 	current := p.durationToString(p.SampleRate.D(p.Stream.Position()))
 	progress(current + " / " + totalDuration)
 	time.Sleep(1 * time.Second)
-	go p.handleProgression(progress)
+	p.handleProgression(progress)
 
 }
 
-func (p *Player) Play(path string, progress playerProgress) error {
+func (p *Player) Play(path, trackName string, progress playerProgress) error {
+	if p.Playing {
+		p.Control = nil
+	}
 	f, err := os.Open(path)
 	if err != nil {
 		return err
 	}
+	p.PlayingTrackName = trackName
 	s, format, _ := mp3.Decode(f)
 	p.Stream = s
 	p.SampleRate = format.SampleRate
