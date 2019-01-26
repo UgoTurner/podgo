@@ -205,15 +205,17 @@ func (a *AppHandler) playTrack() error {
 		return nil
 	}
 	path := conf.TracksPath + fileName
-	return a.Player.Play(
+	go a.Player.Play(
 		path,
+		track,
 		func(s string) {
 			a.Render.UpdateTextView(
 				conf.FooterViewName,
-				s+" ~ "+track,
+				s+" ~ "+a.Player.PlayingTrackName,
 			)
 		},
 	)
+	return nil
 }
 
 func (a *AppHandler) togglePlayPause() error {
