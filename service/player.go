@@ -1,7 +1,6 @@
 package service
 
 import (
-	"log"
 	"math"
 	"os"
 	"strconv"
@@ -45,10 +44,10 @@ func (p *Player) handleProgression(progress playerProgress) {
 
 }
 
-func (p *Player) Play(path string, progress playerProgress) {
+func (p *Player) Play(path string, progress playerProgress) error {
 	f, err := os.Open(path)
 	if err != nil {
-		log.Fatal(path)
+		return err
 	}
 	s, format, _ := mp3.Decode(f)
 	p.Stream = s
@@ -59,7 +58,9 @@ func (p *Player) Play(path string, progress playerProgress) {
 	speaker.Play(beep.Seq(p.Control, beep.Callback(func() {
 		p.Playing = false
 	})))
-	//p.handleProgression(progress)
+	p.handleProgression(progress)
+
+	return nil
 }
 
 func (p *Player) TogglePlayPause() {

@@ -1,7 +1,6 @@
 package handler
 
 import (
-	"os"
 	"strings"
 
 	"github.com/ugo/podcastor/conf"
@@ -39,7 +38,7 @@ func (a *AppHandler) Handle(eventName string) error {
 	case "EnterPodcastsList":
 		return a.enterPodcastsList()
 	case "DownloadTrack":
-		return a.downloadTrack()
+		return a.downloadTrack(false)
 	case "EnterTrackDescription":
 		return a.enterTrackDescription()
 	case "EnterPodcastsListFromDescription":
@@ -127,7 +126,7 @@ func (a *AppHandler) extractFileName(url string) string {
 
 }
 
-func (a *AppHandler) downloadTrack() error {
+func (a *AppHandler) downloadTrack(autoPlay bool) error {
 	if a.FeedParser.GetCurrentItemLocalFileName() != "" {
 		a.Render.UpdateTextView(
 			conf.FooterViewName,
@@ -159,6 +158,9 @@ func (a *AppHandler) downloadTrack() error {
 				conf.MainViewName,
 				a.FeedParser.GetCurrentFeedItemsNameAndStatus(),
 			)
+			if autoPlay {
+				a.playTrack()
+			}
 		},
 		func() {
 			a.Render.UpdateTextView(
@@ -192,16 +194,19 @@ func (a *AppHandler) enterPodcastsListFromDescription() error {
 
 func (a *AppHandler) playTrack() error {
 	track := a.FeedParser.GetCurrentFeedName() + " - " + a.FeedParser.GetCurrentItemName()
-	file := conf.TracksPath + a.FeedParser.GetCurrentItemLocalFileName()
-	if _, err := os.Stat(file); os.IsNotExist(err) {
+	fileName := a.FeedParser.GetCurrentItemLocalFileName()
+	if fileName == "" {
 		a.Render.UpdateTextView(
 			conf.FooterViewName,
-			"This track is not downloaded yet.",
+			"Track not downloaded yet.",
 		)
+		a.downloadTrack(true)
+
 		return nil
 	}
-	a.Player.Play(
-		file,
+	path := conf.TracksPath + fileName
+	return a.Player.Play(
+		path,
 		func(s string) {
 			a.Render.UpdateTextView(
 				conf.FooterViewName,
@@ -209,8 +214,6 @@ func (a *AppHandler) playTrack() error {
 			)
 		},
 	)
-
-	return nil
 }
 
 func (a *AppHandler) togglePlayPause() error {

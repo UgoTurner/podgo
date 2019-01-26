@@ -26,6 +26,7 @@ type FeedParser struct {
 func (fh *FeedParser) getFeedUrls() []string {
 	return []string{
 		"https://distorsionpodcast.com/podcasts.xml",
+		"http://feeds.feedburner.com/bureaudesmysteres?fmt=xml",
 		//"http://feeds.soundcloud.com/playlists/soundcloud:playlists:253185017/sounds.rss",
 	}
 }
