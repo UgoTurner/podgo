@@ -1,7 +1,7 @@
 package event
 
 import (
-	"github.com/ugo/podcastor/handler"
+	"github.com/ugo/podgo/handler"
 )
 
 type Subscriber struct {

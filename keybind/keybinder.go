@@ -5,7 +5,7 @@ import (
 	"io/ioutil"
 	"log"
 
-	"github.com/ugo/podcastor/event"
+	"github.com/ugo/podgo/event"
 
 	"github.com/jroimartin/gocui"
 )

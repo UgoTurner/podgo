@@ -3,9 +3,9 @@ package handler
 import (
 	"strings"
 
-	"github.com/ugo/podcastor/conf"
-	"github.com/ugo/podcastor/service"
-	"github.com/ugo/podcastor/ui"
+	"github.com/ugo/podgo/conf"
+	"github.com/ugo/podgo/service"
+	"github.com/ugo/podgo/ui"
 )
 
 type Handler interface {

@@ -4,11 +4,11 @@ import (
 	"log"
 
 	"github.com/jroimartin/gocui"
-	"github.com/ugo/podcastor/event"
-	"github.com/ugo/podcastor/handler"
-	"github.com/ugo/podcastor/keybind"
-	"github.com/ugo/podcastor/service"
-	"github.com/ugo/podcastor/ui"
+	"github.com/ugo/podgo/event"
+	"github.com/ugo/podgo/handler"
+	"github.com/ugo/podgo/keybind"
+	"github.com/ugo/podgo/service"
+	"github.com/ugo/podgo/ui"
 )
 
 func Build() {
