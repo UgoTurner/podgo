@@ -20,4 +20,6 @@ const (
 
 	StoragePath = "storage/"
 	TracksPath  = StoragePath + "tracks/"
+
+	LogFile = "app.log"
 )

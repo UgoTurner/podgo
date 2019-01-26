@@ -56,6 +56,13 @@ func (a *AppHandler) Handle(eventName string) error {
 }
 
 func (a *AppHandler) launch() error {
+	/*
+		todo: log all errors:
+		log.WithFields(log.Fields{
+			"animal": "walrus",
+			"number": 0,
+		}).Info("Went to the beach")
+	*/
 	a.FeedParser.LoadFeeds()
 	a.Render.UpdateListView(conf.SideViewName, a.FeedParser.GetFeedNames())
 	a.Render.UpdateListView(conf.MainViewName, a.FeedParser.GetCurrentFeedItemsNameAndStatus())
