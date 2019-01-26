@@ -8,10 +8,10 @@
       "Hidden": false,
       "Coordinate":
         {
-          "TopLeftXrel" : 0,
-          "TopLeftYrel" : 0,
-          "BottomRightXrel": 0.3,
-          "BottomRightYrel": 0.936
+          "TopLeftXabs" : 0,
+          "TopLeftYabs" : 0,
+          "BottomRightXabs": 35,
+          "BottomRightYrel": -4
         },
 		  "SelectionColor": {
         "BgColorCurrent": "green", "FgColorCurrent": "black",
@@ -28,10 +28,10 @@
       "Hidden": false,
       "Coordinate":
         {
-          "TopLeftXrel" : 0.31,
-          "TopLeftYrel" : 0,
-          "BottomRightXrel": 0.999,
-          "BottomRightYrel": 0.936
+          "TopLeftXabs" : 36,
+          "TopLeftYabs" : 0,
+          "BottomRightXrel": -1,
+          "BottomRightYrel": -4
         },
 		  "SelectionColor": {
         "BgColorCurrent": "default", "FgColorCurrent": "white",
@@ -48,10 +48,10 @@
       "Hidden": false,
       "Coordinate":
         {
-          "TopLeftXrel" : 0,
-          "TopLeftYrel" : 0.94,
-          "BottomRightXrel": 0.999,
-          "BottomRightYrel": 0.999
+          "TopLeftXabs" : 0,
+          "TopLeftYrel" : -3,
+          "BottomRightXrel": -1,
+          "BottomRightYrel": -1
         },
 		  "SelectionColor": {
         "BgColorCurrent": "default", "FgColorCurrent": "white",
@@ -68,10 +68,10 @@
       "Hidden": true,
       "Coordinate":
         {
-          "TopLeftXrel" : 0.31,
-          "TopLeftYrel" : 0,
-          "BottomRightXrel": 0.999,
-          "BottomRightYrel": 0.936
+          "TopLeftXabs" : 31,
+          "TopLeftYabs" : 0,
+          "BottomRightXrel": -1,
+          "BottomRightYrel": -4
         },
 		  "SelectionColor": {
         "BgColorCurrent": "default", "FgColorCurrent": "white",
