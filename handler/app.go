@@ -2,8 +2,11 @@ package handler
 
 import (
 	"strings"
+	"time"
 
+	log "github.com/sirupsen/logrus"
 	"github.com/ugo/podgo/conf"
+	"github.com/ugo/podgo/model"
 	"github.com/ugo/podgo/service"
 	"github.com/ugo/podgo/ui"
 )
@@ -14,9 +17,10 @@ type Handler interface {
 
 type AppHandler struct {
 	Handler
-	FeedParser *service.FeedParser
-	Render     *ui.Render
-	Player     *service.Player
+	FeedParser     *service.FeedParser
+	Render         *ui.Render
+	Player         *service.Player
+	FeedRepository *model.FeedRepository
 }
 
 func (a *AppHandler) Handle(eventName string) error {
@@ -49,6 +53,14 @@ func (a *AppHandler) Handle(eventName string) error {
 		return a.togglePlayPause()
 	case "SeekForward":
 		return a.seekForward()
+	case "SeekBackward":
+		return a.seekBackward()
+	case "AddNewFeed":
+		return a.addNewFeed()
+	case "ConfirmNewFeed":
+		return a.confirmNewFeed()
+	case "QuitNewFeed":
+		return a.quitNewFeed()
 	default:
 		return nil
 	}
@@ -56,14 +68,8 @@ func (a *AppHandler) Handle(eventName string) error {
 }
 
 func (a *AppHandler) launch() error {
-	/*
-		todo: log all errors:
-		log.WithFields(log.Fields{
-			"animal": "walrus",
-			"number": 0,
-		}).Info("Went to the beach")
-	*/
-	a.FeedParser.LoadFeeds()
+	feeds := a.FeedRepository.FetchAll()
+	a.FeedParser.SetFeeds(feeds)
 	a.Render.UpdateListView(conf.SideViewName, a.FeedParser.GetFeedNames())
 	a.Render.UpdateListView(conf.MainViewName, a.FeedParser.GetCurrentFeedItemsNameAndStatus())
 	return nil
@@ -239,6 +245,53 @@ func (a *AppHandler) seekForward() error {
 
 func (a *AppHandler) seekBackward() error {
 	a.Player.Seek(-10)
+
+	return nil
+}
+
+func (a *AppHandler) addNewFeed() error {
+	a.Render.Show(conf.PromptViewName)
+	a.Render.Focus(conf.PromptViewName)
+
+	return nil
+}
+
+func (a *AppHandler) triggerInfoMessage(msg string) error {
+	go func() error {
+		a.Render.Show(conf.FlashMessageViewName)
+		a.Render.UpdateTextView(
+			conf.FlashMessageViewName,
+			msg,
+		)
+		time.Sleep(2 * time.Second)
+		a.Render.Hide(conf.FlashMessageViewName)
+
+		return nil
+	}()
+
+	return nil
+}
+
+func (a *AppHandler) confirmNewFeed() error {
+	url := a.Render.GetCurrentBuffer(conf.PromptViewName)
+	feed := a.FeedParser.LoadFeedFromUrl(strings.TrimSpace(url))
+	if feed == nil {
+		a.triggerInfoMessage("Invalid url")
+		log.Error("Empty feed")
+		return nil
+	}
+	a.FeedRepository.Update([]*model.Feed{feed})
+	a.FeedParser.AddFeed(feed)
+	a.launch()
+	a.Render.Hide(conf.PromptViewName)
+	a.Render.Focus(conf.SideViewName)
+
+	return nil
+}
+
+func (a *AppHandler) quitNewFeed() error {
+	a.Render.Hide(conf.PromptViewName)
+	a.Render.Focus(conf.SideViewName)
 
 	return nil
 }

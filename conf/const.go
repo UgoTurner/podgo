@@ -7,11 +7,17 @@ const (
 	MainViewName  = "main-primary"
 	MainViewTitle = "Tracks"
 
+	MainDetailsViewName  = "main-secondary"
+	MainDetailsViewTitle = ""
+
 	FooterViewName  = "footer"
 	FooterViewTitle = ""
 
-	MainDetailsViewName  = "main-secondary"
-	MainDetailsViewTitle = ""
+	PromptViewName  = "prompt"
+	PromptViewTitle = ""
+
+	FlashMessageViewName  = "flashmsg"
+	FlashMessageViewTitle = ""
 
 	ColorDefault = "default"
 	ColorGreen   = "green"

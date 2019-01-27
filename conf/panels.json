@@ -6,6 +6,7 @@
       "Frame": true,
       "Overwrite": false,
       "Hidden": false,
+      "Editable": false,
       "Coordinate":
         {
           "TopLeftXabs" : 0,
@@ -26,9 +27,31 @@
       "Frame": true,
       "Overwrite": false,
       "Hidden": false,
+      "Editable": false,
       "Coordinate":
         {
           "TopLeftXabs" : 36,
+          "TopLeftYabs" : 0,
+          "BottomRightXrel": -1,
+          "BottomRightYrel": -4
+        },
+		  "SelectionColor": {
+        "BgColorCurrent": "default", "FgColorCurrent": "white",
+			  "BgColorActive": "green", "FgColorActive": "black",
+		    "BgColorUnactive": "default", "FgColorUnactive": "white"
+		  }
+    },
+    {
+      "Name": "main-secondary",
+      "Title" : "",
+      "Highlight": true, 
+      "Frame": true,
+      "Overwrite": false,
+      "Hidden": true,
+      "Editable": false,
+      "Coordinate":
+        {
+          "TopLeftXabs" : 31,
           "TopLeftYabs" : 0,
           "BottomRightXrel": -1,
           "BottomRightYrel": -4
@@ -46,6 +69,7 @@
       "Frame": true,
       "Overwrite": false,
       "Hidden": false,
+      "Editable": false,
       "Coordinate":
         {
           "TopLeftXabs" : 0,
@@ -60,18 +84,40 @@
 		  }
     },
     {
-      "Name": "main-secondary",
-      "Title" : "",
-      "Highlight": true, 
+      "Name": "prompt",
+      "Title" : "New feed (url)",
+      "Highlight": false, 
       "Frame": true,
       "Overwrite": false,
       "Hidden": true,
+      "Editable": true,
       "Coordinate":
         {
-          "TopLeftXabs" : 31,
-          "TopLeftYabs" : 0,
+          "TopLeftXabs" : 0,
+          "TopLeftYrel" : -3,
           "BottomRightXrel": -1,
-          "BottomRightYrel": -4
+          "BottomRightYrel": -1
+        },
+		  "SelectionColor": {
+        "BgColorCurrent": "default", "FgColorCurrent": "white",
+			  "BgColorActive": "green", "FgColorActive": "black",
+		    "BgColorUnactive": "default", "FgColorUnactive": "white"
+		  }
+    },
+    {
+      "Name": "flashmsg",
+      "Title" : "",
+      "Highlight": false, 
+      "Frame": true,
+      "Overwrite": false,
+      "Hidden": true,
+      "Editable": false,
+      "Coordinate":
+        {
+          "TopLeftXrel" : -50,
+          "TopLeftYrel" : -3,
+          "BottomRightXrel": -1,
+          "BottomRightYrel": -1
         },
 		  "SelectionColor": {
         "BgColorCurrent": "default", "FgColorCurrent": "white",

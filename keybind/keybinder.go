@@ -3,7 +3,8 @@ package keybind
 import (
 	"encoding/json"
 	"io/ioutil"
-	"log"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/ugo/podgo/event"
 
@@ -11,6 +12,7 @@ import (
 )
 
 func gocuiAdapt(keyStr string) gocui.Key {
+	log.Info("Key stroke : " + keyStr)
 	switch keyStr {
 	case "ctrlC":
 		return gocui.KeyCtrlC
@@ -32,6 +34,12 @@ func gocuiAdapt(keyStr string) gocui.Key {
 		return gocui.KeyCtrlF
 	case "ctrlB":
 		return gocui.KeyCtrlB
+	case "ctrlA":
+		return gocui.KeyCtrlA
+	case "enter":
+		return gocui.KeyEnter
+	case "ctrlL":
+		return gocui.KeyCtrlL
 	default:
 		log.Panicln("Unkown keybind : " + keyStr)
 		return gocui.KeyCtrl2

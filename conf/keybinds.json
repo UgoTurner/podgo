@@ -14,11 +14,14 @@
         {
           "Key" : "ctrlF",
           "Action" : "SeekForward"
-        }
-        ,
+        },
         {
           "Key" : "ctrlB",
           "Action" : "SeekBackward"
+        },
+        {
+          "Key" : "ctrlA",
+          "Action" : "AddNewFeed"
         }
       ]
   },
@@ -81,6 +84,20 @@
         {
           "Key" : "ctrlD",
           "Action" : "DownloadTrack"
+        }
+      ]
+  },
+  {
+    "ViewName" : "prompt",
+    "Keybinds":
+      [
+        {
+          "Key" : "enter",
+          "Action" : "ConfirmNewFeed"
+        },
+        {
+          "Key" : "ctrlL",
+          "Action" : "QuitNewFeed"
         }
       ]
   }

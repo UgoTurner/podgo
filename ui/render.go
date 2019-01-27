@@ -4,7 +4,8 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"log"
+
+	log "github.com/sirupsen/logrus"
 
 	"github.com/ugo/podgo/conf"
 
@@ -93,6 +94,7 @@ func (r *Render) CreateView(p *Panel) *gocui.View {
 	v.Highlight = p.Highlight
 	v.Frame = p.Frame
 	v.Title = p.Title
+	v.Editable = p.Editable
 	v.Wrap = true
 	v.Overwrite = p.Overwrite
 
@@ -247,4 +249,13 @@ func (r *Render) Hide(viewName string) error {
 	r.TUI.DeleteView(viewName)
 
 	return nil
+}
+func (r *Render) GetCurrentBuffer(viewName string) string {
+	v, err := r.TUI.View(viewName)
+	if err != nil {
+		log.WithFields(log.Fields{
+			"viewName": viewName,
+		}).Error("View not found")
+	}
+	return v.Buffer()
 }

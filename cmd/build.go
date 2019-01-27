@@ -3,7 +3,10 @@ package cmd
 import (
 	"os"
 
+	"github.com/ugo/podgo/model"
+
 	"github.com/jroimartin/gocui"
+	scribble "github.com/nanobox-io/golang-scribble"
 	log "github.com/sirupsen/logrus"
 	"github.com/ugo/podgo/conf"
 	"github.com/ugo/podgo/event"
@@ -14,7 +17,7 @@ import (
 )
 
 func init() {
-	file, err := os.OpenFile(conf.logFile, os.O_CREATE|os.O_WRONLY, 0666)
+	file, err := os.OpenFile(conf.LogFile, os.O_CREATE|os.O_WRONLY, 0666)
 	if err == nil {
 		log.SetOutput(file)
 		log.SetFormatter(&log.JSONFormatter{})
@@ -26,7 +29,12 @@ func init() {
 }
 
 func Build() {
-
+	// init db
+	db, err := scribble.New("./storage/db/", nil)
+	if err != nil {
+		log.Panicln("Error when init DB", err)
+	}
+	// init gui
 	g, err := gocui.NewGui(gocui.OutputNormal)
 	if err != nil {
 		log.Panicln("Error when creating GUI")
@@ -45,9 +53,10 @@ func Build() {
 
 	appSubscriber := &event.Subscriber{
 		Handler: &handler.AppHandler{
-			FeedParser: &service.FeedParser{},
-			Render:     render,
-			Player:     &service.Player{},
+			FeedParser:     &service.FeedParser{},
+			Render:         render,
+			Player:         &service.Player{},
+			FeedRepository: &model.FeedRepository{Db: db},
 		},
 	}
 
@@ -55,7 +64,7 @@ func Build() {
 	eventDispatcher.Dispatch("Launch")
 
 	if err := g.MainLoop(); err != nil && err != gocui.ErrQuit {
-		log.Panicln(err)
+		log.Panic(err)
 	}
 
 }

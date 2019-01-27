@@ -1,11 +1,11 @@
 package ui
 
 type Panel struct {
-	Title                               string
-	Name                                string
-	Highlight, Frame, Overwrite, Hidden bool
-	Coordinate                          Coordinate
-	SelectionColor                      SelectionColor
+	Title                                         string
+	Name                                          string
+	Highlight, Frame, Overwrite, Hidden, Editable bool
+	Coordinate                                    Coordinate
+	SelectionColor                                SelectionColor
 }
 
 func (p *Panel) EnableSelection() {
