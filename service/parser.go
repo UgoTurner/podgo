@@ -2,41 +2,38 @@ package service
 
 import (
 	"github.com/mmcdole/gofeed"
+	log "github.com/sirupsen/logrus"
+	"github.com/ugo/podgo/model"
 )
 
-type Item struct {
-	Title         string
-	Description   string
-	Url           string
-	LocalFileName string
-	Playing       bool
-}
-
-type Feed struct {
-	Title string
-	Items []*Item
-}
+//"https://distorsionpodcast.com/podcasts.xml"
+//"http://feeds.feedburner.com/bureaudesmysteres?fmt=xml"
+//"http://feeds.soundcloud.com/playlists/soundcloud:playlists:253185017/sounds.rss"
 
 type FeedParser struct {
-	Feeds            []*Feed
+	Feeds            []*model.Feed
 	CurrentFeedIndex int
 	CurrentItemIndex int
 }
 
-func (fh *FeedParser) getFeedUrls() []string {
-	return []string{
-		"https://distorsionpodcast.com/podcasts.xml",
-		"http://feeds.feedburner.com/bureaudesmysteres?fmt=xml",
-		//"http://feeds.soundcloud.com/playlists/soundcloud:playlists:253185017/sounds.rss",
-	}
+func (fh *FeedParser) GetFeeds() []*model.Feed {
+	return fh.Feeds
 }
 
-func (fh *FeedParser) extractItems(gItems []*gofeed.Item) []*Item {
-	var it []*Item
+func (fh *FeedParser) SetFeeds(feeds []*model.Feed) {
+	fh.Feeds = feeds
+}
+
+func (fh *FeedParser) AddFeed(feed *model.Feed) {
+	fh.Feeds = append(fh.Feeds, feed)
+}
+
+func (fh *FeedParser) extractItems(gItems []*gofeed.Item) []*model.Item {
+	var it []*model.Item
 	for _, gItem := range gItems {
 		it = append(
 			it,
-			&Item{
+			&model.Item{
 				Title:       gItem.Title,
 				Description: gItem.Description,
 				Url:         fh.extractItemLink(gItem),
@@ -46,8 +43,8 @@ func (fh *FeedParser) extractItems(gItems []*gofeed.Item) []*Item {
 	return it
 }
 
-func (fh *FeedParser) extractFeed(gFeed *gofeed.Feed) *Feed {
-	return &Feed{
+func (fh *FeedParser) extractFeed(gFeed *gofeed.Feed) *model.Feed {
+	return &model.Feed{
 		Title: gFeed.Title,
 		Items: fh.extractItems(gFeed.Items),
 	}
@@ -68,24 +65,17 @@ func (fh *FeedParser) extractItemLink(gItem *gofeed.Item) string {
 
 }
 
-func (fh *FeedParser) LoadFeeds() {
-	/* parse local file
-	file, _ := os.Open("/path/to/a/file.xml")
-	defer file.Close()
+func (fh *FeedParser) LoadFeedFromUrl(url string) *model.Feed {
 	fp := gofeed.NewParser()
-	feed, _ := fp.Parse(file)
-	fmt.Println(feed.Title)
-	*/
+	f, err := fp.ParseURL(url)
+	if err != nil {
+		log.WithFields(log.Fields{"url": url}).Error("Can't parse feed source")
+		return nil
+	}
+	feed := fh.extractFeed(f)
+	feed.Url = url
 
-	fp := gofeed.NewParser()
-	for _, furl := range fh.getFeedUrls() {
-		f, _ := fp.ParseURL(furl)
-		fh.Feeds = append(fh.Feeds, fh.extractFeed(f))
-	}
-	if len(fh.Feeds) > 0 {
-		fh.CurrentFeedIndex = 0
-		fh.CurrentItemIndex = 0
-	}
+	return feed
 }
 
 func (fh *FeedParser) GetFeedNames() []string {
@@ -108,7 +98,7 @@ func (fh *FeedParser) GetItemNames() []string {
 	return titles
 }
 
-func (fh *FeedParser) getFeedByName(feedName string) *Feed {
+func (fh *FeedParser) getFeedByName(feedName string) *model.Feed {
 	for _, feed := range fh.Feeds {
 		if feed.Title != feedName {
 			continue
@@ -132,29 +122,28 @@ func (fh *FeedParser) GetItemNamesByFeedName(feedName string) []string {
 	return titles
 }
 
-func (fh *FeedParser) getFeedByIndex(i int) *Feed {
-	// todo: test key exist
-	return fh.Feeds[i]
+func (fh *FeedParser) getFeedByIndex(i int) *model.Feed {
+	if i >= 0 && i < len(fh.Feeds) {
+		return fh.Feeds[i]
+	}
 
+	return nil
 }
 
-func (fh *FeedParser) getItemByIndex(i int) *Item {
-	// todo: test key exist
-	//fmt.Printf("%+v\n", fh.getCurrentFeed().Items[i])
-	return fh.getCurrentFeed().Items[i]
-
+func (fh *FeedParser) getItemByIndex(i int) *model.Item {
+	if i >= 0 && i < len(fh.getCurrentFeed().Items) {
+		return fh.getCurrentFeed().Items[i]
+	}
+	return nil
 }
 
-func (fh *FeedParser) getCurrentFeed() *Feed {
-	// todo: test key exist
+func (fh *FeedParser) getCurrentFeed() *model.Feed {
 	return fh.getFeedByIndex(fh.CurrentFeedIndex)
 
 }
 
-func (fh *FeedParser) getCurrentItem() *Item {
-	// todo: test key exist
+func (fh *FeedParser) getCurrentItem() *model.Item {
 	return fh.getItemByIndex(fh.CurrentItemIndex)
-
 }
 
 func (fh *FeedParser) GetCurrentFeedName() string {
@@ -173,7 +162,6 @@ func (fh *FeedParser) NextFeed() {
 }
 
 func (fh *FeedParser) PrevFeed() {
-	// todo: test key exist
 	if fh.CurrentFeedIndex > 0 {
 		fh.CurrentFeedIndex = fh.CurrentFeedIndex - 1
 	}
@@ -186,7 +174,6 @@ func (fh *FeedParser) NextItem() {
 }
 
 func (fh *FeedParser) PrevItem() {
-	// todo: test key exist
 	if fh.CurrentItemIndex > 0 {
 		fh.CurrentItemIndex = fh.CurrentItemIndex - 1
 	}
@@ -200,9 +187,9 @@ func (fh *FeedParser) ResetItemIdx() {
 	fh.CurrentItemIndex = 0
 }
 
-func (fh *FeedParser) GetCurrentFeedItems() []*Item {
+func (fh *FeedParser) GetCurrentFeedItems() []*model.Item {
 	if fh.getCurrentFeed() == nil {
-		return []*Item{}
+		return []*model.Item{}
 	}
 
 	return fh.getCurrentFeed().Items
@@ -227,7 +214,7 @@ func (fh *FeedParser) GetCurrentFeedItemsNameAndStatus() []string {
 
 }
 
-func (fh *FeedParser) getItemsNameFromFeed(feed *Feed) []string {
+func (fh *FeedParser) getItemsNameFromFeed(feed *model.Feed) []string {
 	var titles []string
 	for _, item := range feed.Items {
 		titles = append(titles, item.Title)
@@ -236,7 +223,7 @@ func (fh *FeedParser) getItemsNameFromFeed(feed *Feed) []string {
 	return titles
 }
 
-func (fh *FeedParser) getItemsNameAndStatusFromFeed(feed *Feed) []string {
+func (fh *FeedParser) getItemsNameAndStatusFromFeed(feed *model.Feed) []string {
 	var titles []string
 	for _, item := range feed.Items {
 		t := item.Title
