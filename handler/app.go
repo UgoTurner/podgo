@@ -4,26 +4,27 @@ import (
 	"strings"
 	"time"
 
-	log "github.com/sirupsen/logrus"
+	"github.com/sirupsen/logrus"
+
 	"github.com/ugo/podgo/conf"
 	"github.com/ugo/podgo/model"
 	"github.com/ugo/podgo/service"
-	"github.com/ugo/podgo/ui"
+	"github.com/ugo/sangocui"
 )
 
-type Handler interface {
-	Handle(eventName string) error
-}
-
-type AppHandler struct {
-	Handler
-	FeedParser     *service.FeedParser
-	Render         *ui.Render
-	Player         *service.Player
+// App : Binds sangocui event and triggers actions (fetch feeds, dl, play ...)
+type App struct {
+	sangocui.Subscriber
+	TUI            *sangocui.Sangocui
 	FeedRepository *model.FeedRepository
+	FeedParser     *service.FeedParser
+	Player         *service.Player
+	Logger         *logrus.Logger
 }
 
-func (a *AppHandler) Handle(eventName string) error {
+// On : Method from "Subscriber" interface, triggered by sangocui.
+// Call the action matching an event name
+func (a *App) On(eventName string) error {
 	switch eventName {
 	case "Launch":
 		return a.launch()
@@ -67,22 +68,22 @@ func (a *AppHandler) Handle(eventName string) error {
 
 }
 
-func (a *AppHandler) launch() error {
+func (a *App) launch() error {
 	feeds := a.FeedRepository.FetchAll()
 	a.FeedParser.SetFeeds(feeds)
-	a.Render.UpdateListView(conf.SideViewName, a.FeedParser.GetFeedNames())
-	a.Render.UpdateListView(conf.MainViewName, a.FeedParser.GetCurrentFeedItemsNameAndStatus())
+	a.TUI.UpdateListView(conf.SideViewName, a.FeedParser.GetFeedNames())
+	a.TUI.UpdateListView(conf.MainViewName, a.FeedParser.GetCurrentFeedItemsNameAndStatus())
 	return nil
 }
 
-func (a *AppHandler) shutdown() error {
-	return a.Render.Quit()
+func (a *App) shutdown() error {
+	return a.TUI.Quit()
 }
 
-func (a *AppHandler) previousPodcast() error {
+func (a *App) previousPodcast() error {
 	a.FeedParser.PrevFeed()
-	a.Render.CursorUp(conf.SideViewName)
-	a.Render.UpdateListView(
+	a.TUI.CursorUp(conf.SideViewName)
+	a.TUI.UpdateListView(
 		conf.MainViewName,
 		a.FeedParser.GetCurrentFeedItemsNameAndStatus(),
 	)
@@ -90,10 +91,10 @@ func (a *AppHandler) previousPodcast() error {
 	return nil
 }
 
-func (a *AppHandler) nextPodcast() error {
+func (a *App) nextPodcast() error {
 	a.FeedParser.NextFeed()
-	a.Render.CursorDown(conf.SideViewName)
-	a.Render.UpdateListView(
+	a.TUI.CursorDown(conf.SideViewName)
+	a.TUI.UpdateListView(
 		conf.MainViewName,
 		a.FeedParser.GetCurrentFeedItemsNameAndStatus(),
 	)
@@ -101,54 +102,54 @@ func (a *AppHandler) nextPodcast() error {
 	return nil
 }
 
-func (a *AppHandler) enterTracksList() error {
-	a.Render.EnableSelection(conf.MainViewName)
-	a.Render.Focus(conf.MainViewName)
+func (a *App) enterTracksList() error {
+	a.TUI.EnableSelection(conf.MainViewName)
+	a.TUI.Focus(conf.MainViewName)
 
 	return nil
 }
 
-func (a *AppHandler) previousTrack() error {
+func (a *App) previousTrack() error {
 	a.FeedParser.PrevItem()
-	a.Render.CursorUp(conf.MainViewName)
+	a.TUI.CursorUp(conf.MainViewName)
 
 	return nil
 }
 
-func (a *AppHandler) nextTrack() error {
+func (a *App) nextTrack() error {
 	a.FeedParser.NextItem()
-	a.Render.CursorDown(conf.MainViewName)
+	a.TUI.CursorDown(conf.MainViewName)
 
 	return nil
 }
 
-func (a *AppHandler) enterPodcastsList() error {
-	a.Render.ResetCursor(conf.MainViewName)
-	a.Render.DisableSelection(conf.MainViewName)
+func (a *App) enterPodcastsList() error {
+	a.TUI.ResetCursor(conf.MainViewName)
+	a.TUI.DisableSelection(conf.MainViewName)
 	a.FeedParser.ResetFeedIdx()
 	a.FeedParser.ResetItemIdx()
-	a.Render.Focus(conf.SideViewName)
+	a.TUI.Focus(conf.SideViewName)
 
 	return nil
 }
 
-func (a *AppHandler) extractFileName(url string) string {
+func (a *App) extractFileName(url string) string {
 	tokens := strings.Split(url, "/")
 
 	return tokens[len(tokens)-1]
 
 }
 
-func (a *AppHandler) downloadTrack(autoPlay bool) error {
+func (a *App) downloadTrack(autoPlay bool) error {
 	if a.FeedParser.GetCurrentItemLocalFileName() != "" {
-		a.Render.UpdateTextView(
+		a.TUI.UpdateTextView(
 			conf.FooterViewName,
 			"Already downloaded",
 		)
 		return nil
 	}
 	fileName := a.extractFileName(a.FeedParser.GetCurrentItemUrl())
-	a.Render.UpdateTextView(
+	a.TUI.UpdateTextView(
 		conf.FooterViewName,
 		"Download will start...",
 	)
@@ -156,18 +157,18 @@ func (a *AppHandler) downloadTrack(autoPlay bool) error {
 		conf.TracksPath+fileName,
 		a.FeedParser.GetCurrentItemUrl(),
 		func(progress string) {
-			a.Render.UpdateTextView(
+			a.TUI.UpdateTextView(
 				conf.FooterViewName,
 				"Downloading '"+fileName+"' - "+progress,
 			)
 		},
 		func() {
-			a.Render.UpdateTextView(
+			a.TUI.UpdateTextView(
 				conf.FooterViewName,
 				"Successfully download '"+fileName+"' !",
 			)
 			a.FeedParser.SetCurrentItemLocalFileName(fileName)
-			a.Render.UpdateListView(
+			a.TUI.UpdateListView(
 				conf.MainViewName,
 				a.FeedParser.GetCurrentFeedItemsNameAndStatus(),
 			)
@@ -176,7 +177,7 @@ func (a *AppHandler) downloadTrack(autoPlay bool) error {
 			}
 		},
 		func() {
-			a.Render.UpdateTextView(
+			a.TUI.UpdateTextView(
 				conf.FooterViewName,
 				"Fail to donwload '"+fileName+"' !",
 			)
@@ -186,10 +187,10 @@ func (a *AppHandler) downloadTrack(autoPlay bool) error {
 	return nil
 }
 
-func (a *AppHandler) enterTrackDescription() error {
-	a.Render.Show(conf.MainDetailsViewName)
-	a.Render.Focus(conf.MainDetailsViewName)
-	a.Render.UpdateTextView(
+func (a *App) enterTrackDescription() error {
+	a.TUI.Show(conf.MainDetailsViewName)
+	a.TUI.Focus(conf.MainDetailsViewName)
+	a.TUI.UpdateTextView(
 		conf.MainDetailsViewName,
 		a.FeedParser.GetCurrentItemDescription(),
 	)
@@ -198,18 +199,18 @@ func (a *AppHandler) enterTrackDescription() error {
 
 }
 
-func (a *AppHandler) enterPodcastsListFromDescription() error {
-	a.Render.Hide(conf.MainDetailsViewName)
-	a.Render.Focus(conf.MainViewName)
+func (a *App) enterPodcastsListFromDescription() error {
+	a.TUI.Hide(conf.MainDetailsViewName)
+	a.TUI.Focus(conf.MainViewName)
 
 	return nil
 }
 
-func (a *AppHandler) playTrack() error {
+func (a *App) playTrack() error {
 	track := a.FeedParser.GetCurrentFeedName() + " - " + a.FeedParser.GetCurrentItemName()
 	fileName := a.FeedParser.GetCurrentItemLocalFileName()
 	if fileName == "" {
-		a.Render.UpdateTextView(
+		a.TUI.UpdateTextView(
 			conf.FooterViewName,
 			"Track not downloaded yet.",
 		)
@@ -222,7 +223,7 @@ func (a *AppHandler) playTrack() error {
 		path,
 		track,
 		func(s string) {
-			a.Render.UpdateTextView(
+			a.TUI.UpdateTextView(
 				conf.FooterViewName,
 				s+" ~ "+a.Player.PlayingTrackName,
 			)
@@ -231,40 +232,40 @@ func (a *AppHandler) playTrack() error {
 	return nil
 }
 
-func (a *AppHandler) togglePlayPause() error {
+func (a *App) togglePlayPause() error {
 	a.Player.TogglePlayPause()
 
 	return nil
 }
 
-func (a *AppHandler) seekForward() error {
+func (a *App) seekForward() error {
 	a.Player.Seek(10)
 
 	return nil
 }
 
-func (a *AppHandler) seekBackward() error {
+func (a *App) seekBackward() error {
 	a.Player.Seek(-10)
 
 	return nil
 }
 
-func (a *AppHandler) addNewFeed() error {
-	a.Render.Show(conf.PromptViewName)
-	a.Render.Focus(conf.PromptViewName)
+func (a *App) addNewFeed() error {
+	a.TUI.Show(conf.PromptViewName)
+	a.TUI.Focus(conf.PromptViewName)
 
 	return nil
 }
 
-func (a *AppHandler) triggerInfoMessage(msg string) error {
+func (a *App) triggerInfoMessage(msg string) error {
 	go func() error {
-		a.Render.Show(conf.FlashMessageViewName)
-		a.Render.UpdateTextView(
+		a.TUI.Show(conf.FlashMessageViewName)
+		a.TUI.UpdateTextView(
 			conf.FlashMessageViewName,
 			msg,
 		)
 		time.Sleep(2 * time.Second)
-		a.Render.Hide(conf.FlashMessageViewName)
+		a.TUI.Hide(conf.FlashMessageViewName)
 
 		return nil
 	}()
@@ -272,26 +273,26 @@ func (a *AppHandler) triggerInfoMessage(msg string) error {
 	return nil
 }
 
-func (a *AppHandler) confirmNewFeed() error {
-	url := a.Render.GetCurrentBuffer(conf.PromptViewName)
-	feed := a.FeedParser.LoadFeedFromUrl(strings.TrimSpace(url))
+func (a *App) confirmNewFeed() error {
+	url := strings.TrimSpace(a.TUI.GetCurrentBuffer(conf.PromptViewName))
+	feed := a.FeedParser.LoadFeedFromUrl(url)
 	if feed == nil {
 		a.triggerInfoMessage("Invalid url")
-		log.Error("Empty feed")
+		a.Logger.WithFields(logrus.Fields{"url": url}).Error("Can't parse feed source")
 		return nil
 	}
 	a.FeedRepository.Update([]*model.Feed{feed})
 	a.FeedParser.AddFeed(feed)
 	a.launch()
-	a.Render.Hide(conf.PromptViewName)
-	a.Render.Focus(conf.SideViewName)
+	a.TUI.Hide(conf.PromptViewName)
+	a.TUI.Focus(conf.SideViewName)
 
 	return nil
 }
 
-func (a *AppHandler) quitNewFeed() error {
-	a.Render.Hide(conf.PromptViewName)
-	a.Render.Focus(conf.SideViewName)
+func (a *App) quitNewFeed() error {
+	a.TUI.Hide(conf.PromptViewName)
+	a.TUI.Focus(conf.SideViewName)
 
 	return nil
 }
