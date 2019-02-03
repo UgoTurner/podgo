@@ -14,32 +14,6 @@ import (
 	"github.com/ugo/sangocui"
 )
 
-/*
-func init() {
-	file, err := os.OpenFile(conf.LogFile, os.O_CREATE|os.O_WRONLY, 0666)
-	if err == nil {
-		log.SetOutput(file)
-		log.SetFormatter(&log.JSONFormatter{})
-		//the log level is set to "Info" which allows
-		//to log Info(), Warn(), Error() and Fatal()
-	} else {
-		log.Info("Failed to log to file, using default stderr")
-	}
-
-	// pkg log :
-
-		file, err := os.OpenFile("pkg.log", os.O_CREATE|os.O_WRONLY, 0666)
-		if err == nil {
-			log.SetOutput(file)
-			log.SetFormatter(&log.JSONFormatter{})
-			//the log level is set to "Info" which allows
-			//to log Info(), Warn(), Error() and Fatal()
-		} else {
-			log.Info("Failed to log to file, using default stderr")
-		}
-}
-*/
-
 func initSangocuiLogger() *logrus.Logger {
 	var logger = logrus.New()
 	file, err := os.OpenFile(conf.SgLogFile, os.O_CREATE|os.O_WRONLY, 0666)
@@ -64,22 +38,25 @@ func initAppLogger() *logrus.Logger {
 	return logger
 }
 
-func Build() {
-	// init db
-	db, err := scribble.New("./storage/db/", nil)
+func initDb() *scribble.Driver {
+	db, err := scribble.New(conf.DbPath, nil)
 	if err != nil {
-		log.Panicln("Error when init DB", err)
+		log.Panicln("Error during init DB", err)
 	}
 
+	return db
+}
+
+func Build() {
 	sg := sangocui.NewWithLogger(initSangocuiLogger())
 	sg.Configure(
-		"conf/panels.json",
-		"conf/keybinds.json",
+		conf.ConfPanels,
+		conf.ConfKeybinds,
 		conf.SideViewName,
 	)
 	appSubscriber := &handler.App{
 		TUI:            sg,
-		FeedRepository: &model.FeedRepository{Db: db},
+		FeedRepository: &model.FeedRepository{Db: initDb()},
 		FeedParser:     &service.FeedParser{},
 		Player:         &service.Player{},
 		Logger:         initSangocuiLogger(),

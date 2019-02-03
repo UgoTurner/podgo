@@ -19,8 +19,13 @@ const (
 	FlashMessageViewName  = "flashmsg"
 	FlashMessageViewTitle = ""
 
-	StoragePath = "storage/"
+	ConfPanels   = "conf/panels.json"
+	ConfKeybinds = "conf/keybinds.json"
+
+	StoragePath = "./storage/"
 	TracksPath  = StoragePath + "tracks/"
+
+	DbPath = "./storage/db/"
 
 	AppLogFile = "app.log"
 	SgLogFile  = "sangocui.log"
