@@ -19,13 +19,9 @@ const (
 	FlashMessageViewName  = "flashmsg"
 	FlashMessageViewTitle = ""
 
-	ColorDefault = "default"
-	ColorGreen   = "green"
-	ColorBlack   = "black"
-	ColorWhite   = "white"
-
 	StoragePath = "storage/"
 	TracksPath  = StoragePath + "tracks/"
 
-	LogFile = "app.log"
+	AppLogFile = "app.log"
+	SgLogFile  = "sangocui.log"
 )

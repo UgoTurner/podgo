@@ -2,7 +2,6 @@ package service
 
 import (
 	"github.com/mmcdole/gofeed"
-	log "github.com/sirupsen/logrus"
 	"github.com/ugo/podgo/model"
 )
 
@@ -69,7 +68,6 @@ func (fh *FeedParser) LoadFeedFromUrl(url string) *model.Feed {
 	fp := gofeed.NewParser()
 	f, err := fp.ParseURL(url)
 	if err != nil {
-		log.WithFields(log.Fields{"url": url}).Error("Can't parse feed source")
 		return nil
 	}
 	feed := fh.extractFeed(f)
