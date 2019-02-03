@@ -5,10 +5,6 @@ import (
 	"github.com/ugo/podgo/model"
 )
 
-//"https://distorsionpodcast.com/podcasts.xml"
-//"http://feeds.feedburner.com/bureaudesmysteres?fmt=xml"
-//"http://feeds.soundcloud.com/playlists/soundcloud:playlists:253185017/sounds.rss"
-
 type FeedParser struct {
 	Feeds            []*model.Feed
 	CurrentFeedIndex int
