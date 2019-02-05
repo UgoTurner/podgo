@@ -1,6 +1,6 @@
 package main
 
-import "github.com/ugo/podgo/cmd"
+import "github.com/uturner/podgo/cmd"
 
 func main() {
 	cmd.Build()

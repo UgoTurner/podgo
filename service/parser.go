@@ -2,7 +2,7 @@ package service
 
 import (
 	"github.com/mmcdole/gofeed"
-	"github.com/ugo/podgo/model"
+	"github.com/uturner/podgo/model"
 )
 
 type FeedParser struct {
