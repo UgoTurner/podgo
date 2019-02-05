@@ -28,5 +28,5 @@ const (
 	DbPath = "./storage/db/"
 
 	AppLogFile = "app.log"
-	SgLogFile  = "sangocui.log"
+	SgLogFile  = "songocui.log"
 )

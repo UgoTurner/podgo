@@ -9,20 +9,20 @@ import (
 	"github.com/uturner/podgo/conf"
 	"github.com/uturner/podgo/model"
 	"github.com/uturner/podgo/service"
-	"github.com/uturner/sangocui"
+	"github.com/uturner/songocui"
 )
 
-// App : Binds sangocui event and triggers actions (fetch feeds, dl, play ...)
+// App : Binds songocui event and triggers actions (fetch feeds, dl, play ...)
 type App struct {
-	sangocui.Subscriber
-	TUI            *sangocui.Sangocui
+	songocui.Subscriber
+	TUI            *songocui.Songocui
 	FeedRepository *model.FeedRepository
 	FeedParser     *service.FeedParser
 	Player         *service.Player
 	Logger         *logrus.Logger
 }
 
-// On : Method from "Subscriber" interface, triggered by sangocui.
+// On : Method from "Subscriber" interface, triggered by songocui.
 // Call the action matching an event name
 func (a *App) On(eventName string) error {
 	switch eventName {
