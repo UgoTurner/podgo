@@ -11,10 +11,10 @@ import (
 	scribble "github.com/nanobox-io/golang-scribble"
 	"github.com/uturner/podgo/handler"
 	"github.com/uturner/podgo/service"
-	"github.com/uturner/sangocui"
+	"github.com/uturner/songocui"
 )
 
-func initSangocuiLogger() *logrus.Logger {
+func initSongocuiLogger() *logrus.Logger {
 	var logger = logrus.New()
 	file, err := os.OpenFile(conf.SgLogFile, os.O_CREATE|os.O_WRONLY, 0666)
 	if err != nil {
@@ -48,7 +48,7 @@ func initDb() *scribble.Driver {
 }
 
 func Build() {
-	sg := sangocui.NewWithLogger(initSangocuiLogger())
+	sg := songocui.NewWithLogger(initSongocuiLogger())
 	sg.Configure(
 		conf.ConfPanels,
 		conf.ConfKeybinds,
@@ -59,8 +59,8 @@ func Build() {
 		FeedRepository: &model.FeedRepository{Db: initDb()},
 		FeedParser:     &service.FeedParser{},
 		Player:         &service.Player{},
-		Logger:         initSangocuiLogger(),
+		Logger:         initSongocuiLogger(),
 	}
-	sg.RegisterSubscribers([]sangocui.Subscriber{appSubscriber})
+	sg.RegisterSubscribers([]songocui.Subscriber{appSubscriber})
 	sg.Boot()
 }
