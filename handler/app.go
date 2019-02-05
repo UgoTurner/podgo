@@ -6,10 +6,10 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/ugo/podgo/conf"
-	"github.com/ugo/podgo/model"
-	"github.com/ugo/podgo/service"
-	"github.com/ugo/sangocui"
+	"github.com/uturner/podgo/conf"
+	"github.com/uturner/podgo/model"
+	"github.com/uturner/podgo/service"
+	"github.com/uturner/sangocui"
 )
 
 // App : Binds sangocui event and triggers actions (fetch feeds, dl, play ...)
