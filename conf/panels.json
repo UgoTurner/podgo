@@ -7,6 +7,7 @@
       "Overwrite": false,
       "Hidden": false,
       "Editable": false,
+      "Wrap": false,
       "Coordinate":
         {
           "TopLeftXabs" : 0,
@@ -15,8 +16,8 @@
           "BottomRightYrel": -4
         },
 		  "SelectionColor": {
-        "BgColorCurrent": "green", "FgColorCurrent": "black",
-			  "BgColorActive": "green", "FgColorActive": "black",
+        "BgColorCurrent": "white", "FgColorCurrent": "black",
+			  "BgColorActive": "white", "FgColorActive": "black",
 		    "BgColorUnactive": "default", "FgColorUnactive": "white"
 		  }
     },
@@ -28,6 +29,7 @@
       "Overwrite": false,
       "Hidden": false,
       "Editable": false,
+      "Wrap": false,
       "Coordinate":
         {
           "TopLeftXabs" : 36,
@@ -37,7 +39,7 @@
         },
 		  "SelectionColor": {
         "BgColorCurrent": "default", "FgColorCurrent": "white",
-			  "BgColorActive": "green", "FgColorActive": "black",
+        "BgColorActive": "white", "FgColorActive": "black",
 		    "BgColorUnactive": "default", "FgColorUnactive": "white"
 		  }
     },
@@ -49,6 +51,7 @@
       "Overwrite": false,
       "Hidden": true,
       "Editable": false,
+      "Wrap": true,
       "Coordinate":
         {
           "TopLeftXabs" : 31,
@@ -70,6 +73,7 @@
       "Overwrite": false,
       "Hidden": false,
       "Editable": false,
+      "Wrap": true,
       "Coordinate":
         {
           "TopLeftXabs" : 0,
@@ -91,6 +95,7 @@
       "Overwrite": false,
       "Hidden": true,
       "Editable": true,
+      "Wrap": true,
       "Coordinate":
         {
           "TopLeftXabs" : 0,
@@ -108,10 +113,11 @@
       "Name": "flashmsg",
       "Title" : "",
       "Highlight": false, 
-      "Frame": true,
+      "Frame": false,
       "Overwrite": false,
       "Hidden": true,
       "Editable": false,
+      "Wrap": true,
       "Coordinate":
         {
           "TopLeftXrel" : -50,
