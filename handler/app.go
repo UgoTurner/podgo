@@ -283,9 +283,9 @@ func (a *App) confirmNewFeed() error {
 	}
 	a.FeedRepository.Update([]*model.Feed{feed})
 	a.FeedParser.AddFeed(feed)
-	a.launch()
 	a.TUI.Hide(conf.PromptViewName)
 	a.TUI.Focus(conf.SideViewName)
+	a.launch()
 
 	return nil
 }
