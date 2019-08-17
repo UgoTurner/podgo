@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	scribble "github.com/nanobox-io/golang-scribble"
-	log "github.com/sirupsen/logrus"
 
 	"github.com/kennygrant/sanitize"
 )
@@ -17,10 +16,10 @@ type FeedRepository struct {
 
 func (fr *FeedRepository) Update(feeds []*Feed) {
 	for _, feed := range feeds {
-		log.WithFields(log.Fields{
-			"feed.Url":   feed.Url,
-			"feed.Title": feed.Title,
-		}).Info("Insert new feed")
+		// log.WithFields(log.Fields{
+		// 	"feed.Url":   feed.Url,
+		// 	"feed.Title": feed.Title,
+		// }).Info("Insert new feed")
 		fr.Db.Write("feed", strings.ToLower(sanitize.BaseName(feed.Title)), &feed)
 	}
 }
