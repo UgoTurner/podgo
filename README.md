@@ -22,7 +22,7 @@ Currently only supports Linux platforms.
 
 ### Layout
 The terminal is split in 3 different panels :
-1. **Podcasts list (side panel)** which contains the list of the user's saved podcats.
+1. **Podcasts list (side panel)** which contains the list of the user's saved podcasts.
 2. **Tracks list (main panel)** which contains the tracks list of a selected podcast.
 3. **Summary (footer panel)** which displays the player and the prompt when an action is required.
 
