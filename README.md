@@ -12,11 +12,13 @@ Currently only supports Linux platforms.
 
 ### From source code
 
-    go install github.com/ugoturner/podgo
-	cd $GOPATH/src/github.com/uturner/podgo
-	go build
-	./podgo
-
+```bash
+go mod init github.com/ugoturner/podgo
+go mod tidy
+cd podgo
+go build .
+./podgo
+```
 
 ## Usage
 
