@@ -5,13 +5,13 @@ import (
 	"os"
 
 	"github.com/sirupsen/logrus"
-	"github.com/uturner/podgo/conf"
-	"github.com/uturner/podgo/model"
+	"github.com/ugoturner/podgo/conf"
+	"github.com/ugoturner/podgo/model"
 
 	scribble "github.com/nanobox-io/golang-scribble"
-	"github.com/uturner/podgo/handler"
-	"github.com/uturner/podgo/service"
-	"github.com/uturner/songocui"
+	"github.com/ugoturner/podgo/handler"
+	"github.com/ugoturner/podgo/service"
+	"github.com/ugoturner/songocui"
 )
 
 func initSongocuiLogger() *logrus.Logger {
