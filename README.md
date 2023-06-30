@@ -1,6 +1,6 @@
 # Podgo
 
-**Podgo** is a terminal based app that allows you to manage and play your favorite podcasts ! It uses the great library [Gocui](https://github.com/jroimartin/gocui) with an extra layer called [Songocui](https://github.com/UgoTurner/songocui) and the feed parser library [Gofeed](https://github.com/mmcdole/gofeed).
+**Podgo** is a terminal based app that allows you to manage and play your favorite podcasts! It uses the great library [Gocui](https://github.com/jroimartin/gocui) with an extra layer called [Songocui](https://github.com/UgoTurner/songocui) and the feed parser library [Gofeed](https://github.com/mmcdole/gofeed).
 
 ![Layout](./screenshot.png)
 
