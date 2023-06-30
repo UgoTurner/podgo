@@ -12,7 +12,7 @@ Currently only supports Linux platforms.
 
 ### From source code
 
-    go get github.com/uturner/podgo
+    go install github.com/ugoturner/podgo
 	cd $GOPATH/src/github.com/uturner/podgo
 	go build
 	./podgo
