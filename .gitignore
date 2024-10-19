@@ -37,3 +37,6 @@ Thumbs.db
 *.bin
 *.pid
 *.seed
+
+# Storage
+storage/

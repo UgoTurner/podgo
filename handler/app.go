@@ -55,6 +55,10 @@ func (a *App) On(eventName string) error {
 
 // launch initializes the feed and updates the UI.
 func (a *App) launch() error {
+	err := a.RefreshAllFeeds()
+	if err != nil {
+		a.Logger.WithError(err).Error("Error refreshing feeds")	
+	}
 	feeds, err := a.FeedRepository.FetchAll()
 	if err != nil {
 		a.Logger.WithError(err).Error("Error fetching feeds")
@@ -192,6 +196,34 @@ func (a *App) downloadTrack(autoPlay bool) error {
 		},
 		a.Logger,
 	)
+
+	return nil
+}
+
+func (a *App) RefreshAllFeeds() error {
+	// Retrieve all feeds from the FeedRepository
+	feeds, err := a.FeedRepository.FetchAll()
+	if err != nil {
+		a.Logger.Error("No feeds found in the database")
+		return nil
+	}
+
+	for _, feed := range feeds {
+		updatedFeed := a.FeedParser.LoadFeedFromUrl(feed.Url)
+		if updatedFeed == nil {
+			a.Logger.Errorf("Failed to refresh feed: %s", feed.Title)
+			continue
+		}
+
+		feed.Title = updatedFeed.Title
+		feed.Items = updatedFeed.Items
+
+		if err := a.FeedRepository.Update([]*model.Feed{feed}); err != nil {
+			a.Logger.Errorf("Error saving updated feed: %s, %v", feed.Title, err)
+		} else {
+			a.Logger.Errorf("Successfully refreshed feed: %s", feed.Title)
+		}
+	}
 
 	return nil
 }
