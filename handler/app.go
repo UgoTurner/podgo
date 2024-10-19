@@ -1,18 +1,18 @@
 package handler
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
 	"github.com/sirupsen/logrus"
-
 	"github.com/ugoturner/podgo/conf"
 	"github.com/ugoturner/podgo/model"
 	"github.com/ugoturner/podgo/service"
 	"github.com/ugoturner/songocui"
 )
 
-// App : Binds songocui event and triggers actions (fetch feeds, dl, play ...)
+// App binds songocui events and triggers actions like fetching feeds, downloading, and playing.
 type App struct {
 	songocui.Subscriber
 	TUI            *songocui.Songocui
@@ -22,277 +22,236 @@ type App struct {
 	Logger         *logrus.Logger
 }
 
-// On : Method from "Subscriber" interface, triggered by songocui.
-// Call the action matching an event name
+// On listens to songocui events and triggers the corresponding actions.
 func (a *App) On(eventName string) error {
-	switch eventName {
-	case "Launch":
-		return a.launch()
-	case "Shutdown":
-		return a.shutdown()
-	case "PreviousPodcast":
-		return a.previousPodcast()
-	case "NextPodcast":
-		return a.nextPodcast()
-	case "EnterTracksList":
-		return a.enterTracksList()
-	case "PreviousTrack":
-		return a.previousTrack()
-	case "NextTrack":
-		return a.nextTrack()
-	case "EnterPodcastsList":
-		return a.enterPodcastsList()
-	case "DownloadTrack":
-		return a.downloadTrack(false)
-	case "EnterTrackDescription":
-		return a.enterTrackDescription()
-	case "EnterPodcastsListFromDescription":
-		return a.enterPodcastsListFromDescription()
-	case "PlayTrack":
-		return a.playTrack()
-	case "TogglePlayPause":
-		return a.togglePlayPause()
-	case "SeekForward":
-		return a.seekForward()
-	case "SeekBackward":
-		return a.seekBackward()
-	case "AddNewFeed":
-		return a.addNewFeed()
-	case "ConfirmNewFeed":
-		return a.confirmNewFeed()
-	case "QuitNewFeed":
-		return a.quitNewFeed()
-	default:
-		return nil
+	eventHandlers := map[string]func() error{
+		"Launch":                      a.launch,
+		"Shutdown":                    a.shutdown,
+		"PreviousPodcast":             a.previousPodcast,
+		"NextPodcast":                 a.nextPodcast,
+		"EnterTracksList":             a.enterTracksList,
+		"PreviousTrack":               a.previousTrack,
+		"NextTrack":                   a.nextTrack,
+		"EnterPodcastsList":           a.enterPodcastsList,
+		"DownloadTrack":               func() error { return a.downloadTrack(false) },
+		"EnterTrackDescription":       a.enterTrackDescription,
+		"EnterPodcastsListFromDescription": a.enterPodcastsListFromDescription,
+		"PlayTrack":                   a.playTrack,
+		"TogglePlayPause":             a.togglePlayPause,
+		"SeekForward":                 func() error { return a.seek(10) },
+		"SeekBackward":                func() error { return a.seek(-10) },
+		"AddNewFeed":                  a.addNewFeed,
+		"ConfirmNewFeed":              a.confirmNewFeed,
+		"QuitNewFeed":                 a.quitNewFeed,
 	}
 
-}
+	if handler, ok := eventHandlers[eventName]; ok {
+		return handler()
+	}
 
-func (a *App) launch() error {
-	feeds := a.FeedRepository.FetchAll()
-	a.FeedParser.SetFeeds(feeds)
-	a.TUI.UpdateListView(conf.SideViewName, a.FeedParser.GetFeedNames())
-	a.TUI.UpdateListView(conf.MainViewName, a.FeedParser.GetCurrentFeedItemsNameAndStatus())
+	a.Logger.Warnf("Unhandled event: %s", eventName)
 	return nil
 }
 
+// launch initializes the feed and updates the UI.
+func (a *App) launch() error {
+	feeds, err := a.FeedRepository.FetchAll()
+	if err != nil {
+		a.Logger.WithError(err).Error("Error fetching feeds")
+		return err
+	}
+	a.FeedParser.SetFeeds(feeds)
+	a.updateUIWithFeeds()
+	return nil
+}
+
+// shutdown quits the TUI.
 func (a *App) shutdown() error {
 	return a.TUI.Quit()
 }
 
+// previousPodcast moves to the previous podcast in the feed.
 func (a *App) previousPodcast() error {
 	a.FeedParser.PrevFeed()
 	a.TUI.CursorUp(conf.SideViewName)
-	a.TUI.UpdateListView(
-		conf.MainViewName,
-		a.FeedParser.GetCurrentFeedItemsNameAndStatus(),
-	)
-
-	return nil
+	return a.updateUIAfterFeedChange()
 }
 
+// nextPodcast moves to the next podcast in the feed.
 func (a *App) nextPodcast() error {
 	a.FeedParser.NextFeed()
 	a.TUI.CursorDown(conf.SideViewName)
-	a.TUI.UpdateListView(
-		conf.MainViewName,
-		a.FeedParser.GetCurrentFeedItemsNameAndStatus(),
-	)
-
-	return nil
+	return a.updateUIAfterFeedChange()
 }
 
+// enterTracksList focuses the UI on the list of tracks.
 func (a *App) enterTracksList() error {
 	a.TUI.EnableSelection(conf.MainViewName)
 	a.TUI.Focus(conf.MainViewName)
-
 	return nil
 }
 
+// previousTrack moves to the previous track.
 func (a *App) previousTrack() error {
 	a.FeedParser.PrevItem()
 	a.TUI.CursorUp(conf.MainViewName)
-
 	return nil
 }
 
+// nextTrack moves to the next track.
 func (a *App) nextTrack() error {
 	a.FeedParser.NextItem()
 	a.TUI.CursorDown(conf.MainViewName)
-
 	return nil
 }
 
+// enterPodcastsList resets and focuses the UI on the podcast list.
 func (a *App) enterPodcastsList() error {
 	a.TUI.ResetCursor(conf.MainViewName)
 	a.TUI.DisableSelection(conf.MainViewName)
 	a.FeedParser.ResetFeedIdx()
 	a.FeedParser.ResetItemIdx()
 	a.TUI.Focus(conf.SideViewName)
-
 	return nil
 }
 
-func (a *App) extractFileName(url string) string {
-	tokens := strings.Split(url, "/")
-
-	return tokens[len(tokens)-1]
-
+// enterTrackDescription displays the description of the current track.
+func (a *App) enterTrackDescription() error {
+	a.TUI.Show(conf.MainDetailsViewName)
+	a.TUI.UpdateTextView(conf.MainDetailsViewName, a.FeedParser.GetCurrentItemDescription())
+	a.TUI.Focus(conf.MainDetailsViewName)
+	return nil
 }
 
+// enterPodcastsListFromDescription hides the track description and focuses the podcast list.
+func (a *App) enterPodcastsListFromDescription() error {
+	a.TUI.Hide(conf.MainDetailsViewName)
+	a.TUI.Focus(conf.MainViewName)
+	return nil
+}
+
+// playTrack attempts to play the current track.
+func (a *App) playTrack() error {
+	trackName := fmt.Sprintf("%s - %s", a.FeedParser.GetCurrentFeedName(), a.FeedParser.GetCurrentItemName())
+	fileName := a.FeedParser.GetCurrentItemLocalFileName()
+	if fileName == "" {
+		a.TUI.UpdateTextView(conf.FooterViewName, "Track not downloaded yet.")
+		return a.downloadTrack(true)
+	}
+
+	trackPath := conf.TracksPath + fileName
+	go a.Player.Play(trackPath, trackName, func(status string) {
+		if err := a.TUI.UpdateTextView(conf.FooterViewName, fmt.Sprintf("%s ~ %s", status, a.Player.PlayingTrackName)); err != nil {
+		    a.Logger.Errorf("Failed to update footer view: %v", err)
+		}
+	})
+	return nil
+}
+
+// togglePlayPause toggles the play/pause state of the player.
+func (a *App) togglePlayPause() error {
+	a.Player.TogglePlayPause()
+	return nil
+}
+
+// seek moves the current playback position forward or backward.
+func (a *App) seek(seconds int) error {
+	a.Player.Seek(seconds)
+	return nil
+}
+
+// downloadTrack downloads the current track and optionally plays it afterward.
 func (a *App) downloadTrack(autoPlay bool) error {
 	if a.FeedParser.GetCurrentItemLocalFileName() != "" {
-		a.TUI.UpdateTextView(
-			conf.FooterViewName,
-			"Already downloaded",
-		)
+		a.TUI.UpdateTextView(conf.FooterViewName, "Already downloaded")
 		return nil
 	}
+
 	fileName := a.extractFileName(a.FeedParser.GetCurrentItemUrl())
-	a.TUI.UpdateTextView(
-		conf.FooterViewName,
-		"Download will start...",
-	)
+	a.TUI.UpdateTextView(conf.FooterViewName, "Download will start...")
+
+	// Start the download in a goroutine.
 	go service.DownloadFile(
 		conf.TracksPath+fileName,
 		a.FeedParser.GetCurrentItemUrl(),
 		func(progress string) {
-			a.TUI.UpdateTextView(
-				conf.FooterViewName,
-				"Downloading '"+fileName+"' - "+progress,
-			)
+			a.TUI.UpdateTextView(conf.FooterViewName, fmt.Sprintf("Downloading '%s' - %s", fileName, progress))
 		},
 		func() {
-			a.TUI.UpdateTextView(
-				conf.FooterViewName,
-				"Successfully download '"+fileName+"' !",
-			)
+			a.TUI.UpdateTextView(conf.FooterViewName, fmt.Sprintf("Successfully downloaded '%s'!", fileName))
 			a.FeedParser.SetCurrentItemLocalFileName(fileName)
-			a.TUI.UpdateListView(
-				conf.MainViewName,
-				a.FeedParser.GetCurrentFeedItemsNameAndStatus(),
-			)
+			a.updateUIWithFeeds()
 			if autoPlay {
 				a.playTrack()
 			}
 		},
 		func() {
-			a.TUI.UpdateTextView(
-				conf.FooterViewName,
-				"Fail to donwload '"+fileName+"' !",
-			)
+			a.Logger.Errorf("Failed to download '%s'", fileName)
+			a.TUI.UpdateTextView(conf.FooterViewName, fmt.Sprintf("Failed to download '%s'", fileName))
 		},
+		a.Logger,
 	)
 
 	return nil
 }
 
-func (a *App) enterTrackDescription() error {
-	a.TUI.Show(conf.MainDetailsViewName)
-	a.TUI.Focus(conf.MainDetailsViewName)
-	a.TUI.UpdateTextView(
-		conf.MainDetailsViewName,
-		a.FeedParser.GetCurrentItemDescription(),
-	)
-
-	return nil
-
-}
-
-func (a *App) enterPodcastsListFromDescription() error {
-	a.TUI.Hide(conf.MainDetailsViewName)
-	a.TUI.Focus(conf.MainViewName)
-
-	return nil
-}
-
-func (a *App) playTrack() error {
-	track := a.FeedParser.GetCurrentFeedName() + " - " + a.FeedParser.GetCurrentItemName()
-	fileName := a.FeedParser.GetCurrentItemLocalFileName()
-	if fileName == "" {
-		a.TUI.UpdateTextView(
-			conf.FooterViewName,
-			"Track not downloaded yet.",
-		)
-		a.downloadTrack(true)
-
-		return nil
-	}
-	path := conf.TracksPath + fileName
-	go a.Player.Play(
-		path,
-		track,
-		func(s string) {
-			a.TUI.UpdateTextView(
-				conf.FooterViewName,
-				s+" ~ "+a.Player.PlayingTrackName,
-			)
-		},
-	)
-	return nil
-}
-
-func (a *App) togglePlayPause() error {
-	a.Player.TogglePlayPause()
-
-	return nil
-}
-
-func (a *App) seekForward() error {
-	a.Player.Seek(10)
-
-	return nil
-}
-
-func (a *App) seekBackward() error {
-	a.Player.Seek(-10)
-
-	return nil
-}
-
+// addNewFeed prepares the UI for adding a new feed.
 func (a *App) addNewFeed() error {
 	a.TUI.Show(conf.PromptViewName)
 	a.TUI.Focus(conf.PromptViewName)
-
 	return nil
 }
 
-func (a *App) triggerInfoMessage(msg string) error {
-	go func() error {
-		a.TUI.Show(conf.FlashMessageViewName)
-		a.TUI.UpdateTextView(
-			conf.FlashMessageViewName,
-			msg,
-		)
-		time.Sleep(2 * time.Second)
-		a.TUI.Hide(conf.FlashMessageViewName)
-
-		return nil
-	}()
-
-	return nil
-}
-
+// confirmNewFeed adds a new feed based on user input.
 func (a *App) confirmNewFeed() error {
 	url := strings.TrimSpace(a.TUI.GetCurrentBuffer(conf.PromptViewName))
 	feed := a.FeedParser.LoadFeedFromUrl(url)
 	if feed == nil {
-		a.triggerInfoMessage("Invalid url")
-		a.Logger.WithFields(logrus.Fields{"url": url}).Error("Can't parse feed source")
-		return nil
+		return a.triggerInfoMessage("Invalid URL", logrus.Fields{"url": url})
 	}
 	a.FeedRepository.Update([]*model.Feed{feed})
 	a.FeedParser.AddFeed(feed)
 	a.TUI.Hide(conf.PromptViewName)
 	a.TUI.Focus(conf.SideViewName)
-	a.launch()
-
-	return nil
+	return a.launch()
 }
 
+// quitNewFeed cancels adding a new feed.
 func (a *App) quitNewFeed() error {
 	a.TUI.Hide(conf.PromptViewName)
 	a.TUI.Focus(conf.SideViewName)
+	return nil
+}
+
+// Helper methods
+
+// extractFileName extracts the file name from a URL.
+func (a *App) extractFileName(url string) string {
+	tokens := strings.Split(url, "/")
+	return tokens[len(tokens)-1]
+}
+
+// updateUIWithFeeds updates the UI with the current feed and item list.
+func (a *App) updateUIWithFeeds() {
+	a.TUI.UpdateListView(conf.SideViewName, a.FeedParser.GetFeedNames())
+	a.TUI.UpdateListView(conf.MainViewName, a.FeedParser.GetCurrentFeedItemsNameAndStatus())
+}
+
+// updateUIAfterFeedChange updates the UI after changing feeds.
+func (a *App) updateUIAfterFeedChange() error {
+	a.TUI.UpdateListView(conf.MainViewName, a.FeedParser.GetCurrentFeedItemsNameAndStatus())
+	return nil
+}
+
+// triggerInfoMessage displays a temporary info message in the UI.
+func (a *App) triggerInfoMessage(msg string, fields logrus.Fields) error {
+	a.TUI.Show(conf.FlashMessageViewName)
+	a.TUI.UpdateTextView(conf.FlashMessageViewName, msg)
+
+	go func() {
+		time.Sleep(2 * time.Second)
+		a.TUI.Hide(conf.FlashMessageViewName)
+	}()
 
 	return nil
 }

@@ -1,0 +1,39 @@
+# Build artifacts
+*.exe
+*.exe~
+*.out
+*.test
+*.so
+*.a
+*.o
+
+# Dependency directories
+vendor/
+Gopkg.lock
+Gopkg.toml
+go.mod
+go.sum
+
+# IDE or editor files
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# OS generated files
+.DS_Store
+Thumbs.db
+*.swp
+
+# Go workspace
+*.log
+*.cache
+
+# Coverage files
+*.cov
+*.cover
+
+# Others
+*.bin
+*.pid
+*.seed

@@ -2,42 +2,48 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
 	"strings"
 
-	scribble "github.com/nanobox-io/golang-scribble"
-
+	"github.com/nanobox-io/golang-scribble"
 	"github.com/kennygrant/sanitize"
+	"github.com/sirupsen/logrus"
 )
 
+// FeedRepository handles CRUD operations for feeds using a Scribble DB.
 type FeedRepository struct {
 	Db *scribble.Driver
+	Logger *logrus.Logger
 }
 
-func (fr *FeedRepository) Update(feeds []*Feed) {
+// Update inserts or updates feeds in the Scribble DB.
+func (fr *FeedRepository) Update(feeds []*Feed) error {
 	for _, feed := range feeds {
-		// log.WithFields(log.Fields{
-		// 	"feed.Url":   feed.Url,
-		// 	"feed.Title": feed.Title,
-		// }).Info("Insert new feed")
-		fr.Db.Write("feed", strings.ToLower(sanitize.BaseName(feed.Title)), &feed)
+		feedKey := strings.ToLower(sanitize.BaseName(feed.Title))
+		if err := fr.Db.Write("feed", feedKey, feed); err != nil {
+			fr.Logger.Warnf("Failed to update feed '%s': %w", feed.Title, err)
+			return err
+		}
 	}
+	return nil
 }
 
-func (fr *FeedRepository) FetchAll() []*Feed {
+// FetchAll retrieves all feeds from the Scribble DB.
+func (fr *FeedRepository) FetchAll() ([]*Feed, error) {
 	records, err := fr.Db.ReadAll("feed")
 	if err != nil {
-		fmt.Println("Error", err)
+		fr.Logger.Warnf("Failed to fetch feeds: %s", err)
+		return nil, err
 	}
 
-	feeds := []*Feed{}
-	for _, f := range records {
-		feedFound := Feed{}
-		if err := json.Unmarshal([]byte(f), &feedFound); err != nil {
-			fmt.Println("Error", err)
+	var feeds []*Feed
+	for _, record := range records {
+		var feed Feed
+		if err := json.Unmarshal([]byte(record), &feed); err != nil {
+			fr.Logger.Warnf("Failed to parse feed data: %s", err)
+			return nil, err
 		}
-		feeds = append(feeds, &feedFound)
+		feeds = append(feeds, &feed)
 	}
 
-	return feeds
+	return feeds, nil
 }

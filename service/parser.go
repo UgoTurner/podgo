@@ -3,108 +3,113 @@ package service
 import (
 	"github.com/mmcdole/gofeed"
 	"github.com/ugoturner/podgo/model"
+
+	"github.com/sirupsen/logrus"
 )
 
+// FeedParser manages the feeds and their items.
 type FeedParser struct {
 	Feeds            []*model.Feed
 	CurrentFeedIndex int
 	CurrentItemIndex int
+	Logger         *logrus.Logger
 }
 
-func (fh *FeedParser) GetFeeds() []*model.Feed {
-	return fh.Feeds
+// GetFeeds returns all feeds.
+func (fp *FeedParser) GetFeeds() []*model.Feed {
+	return fp.Feeds
 }
 
-func (fh *FeedParser) SetFeeds(feeds []*model.Feed) {
-	fh.Feeds = feeds
+// SetFeeds sets the feeds.
+func (fp *FeedParser) SetFeeds(feeds []*model.Feed) {
+	fp.Feeds = feeds
 }
 
-func (fh *FeedParser) AddFeed(feed *model.Feed) {
-	fh.Feeds = append(fh.Feeds, feed)
+// AddFeed adds a new feed to the list.
+func (fp *FeedParser) AddFeed(feed *model.Feed) {
+	fp.Feeds = append(fp.Feeds, feed)
 }
 
-func (fh *FeedParser) extractItems(gItems []*gofeed.Item) []*model.Item {
-	var it []*model.Item
+// extractItems extracts the items from gofeed.Item and converts them to model.Item.
+func (fp *FeedParser) extractItems(gItems []*gofeed.Item) []*model.Item {
+	var items []*model.Item
 	for _, gItem := range gItems {
-		it = append(
-			it,
-			&model.Item{
-				Title:       gItem.Title,
-				Description: gItem.Description,
-				Url:         fh.extractItemLink(gItem),
-			})
+		items = append(items, &model.Item{
+			Title:       gItem.Title,
+			Description: gItem.Description,
+			Url:         fp.extractItemLink(gItem),
+		})
 	}
-
-	return it
+	return items
 }
 
-func (fh *FeedParser) extractFeed(gFeed *gofeed.Feed) *model.Feed {
+// extractFeed converts a gofeed.Feed into a model.Feed.
+func (fp *FeedParser) extractFeed(gFeed *gofeed.Feed) *model.Feed {
 	return &model.Feed{
 		Title: gFeed.Title,
-		Items: fh.extractItems(gFeed.Items),
+		Items: fp.extractItems(gFeed.Items),
 	}
 }
 
-func (fh *FeedParser) extractItemLink(gItem *gofeed.Item) string {
+// extractItemLink returns the audio URL from the gofeed.Item.
+func (fp *FeedParser) extractItemLink(gItem *gofeed.Item) string {
 	if gItem == nil {
 		return ""
 	}
 	for _, en := range gItem.Enclosures {
-		if en.Type != "audio/mpeg" {
-			continue
+		if en.Type == "audio/mpeg" {
+			return en.URL
 		}
-
-		return en.URL
 	}
 	return ""
-
 }
 
-func (fh *FeedParser) LoadFeedFromUrl(url string) *model.Feed {
-	fp := gofeed.NewParser()
-	f, err := fp.ParseURL(url)
+// LoadFeedFromUrl loads and parses a feed from a URL.
+func (fp *FeedParser) LoadFeedFromUrl(url string) *model.Feed {
+	feedParser := gofeed.NewParser()
+	gFeed, err := feedParser.ParseURL(url)
 	if err != nil {
+		fp.Logger.Warnf("Unable to parse URL: '%s': %w", url, err)
 		return nil
 	}
-	feed := fh.extractFeed(f)
+	feed := fp.extractFeed(gFeed)
 	feed.Url = url
-
 	return feed
 }
 
-func (fh *FeedParser) GetFeedNames() []string {
+// GetFeedNames returns the titles of all feeds.
+func (fp *FeedParser) GetFeedNames() []string {
 	var titles []string
-	for _, feed := range fh.Feeds {
+	for _, feed := range fp.Feeds {
 		titles = append(titles, feed.Title)
 	}
-
 	return titles
 }
 
-func (fh *FeedParser) GetItemNames() []string {
+// GetItemNames returns the titles of all items across all feeds.
+func (fp *FeedParser) GetItemNames() []string {
 	var titles []string
-	for _, feed := range fh.Feeds {
+	for _, feed := range fp.Feeds {
 		for _, item := range feed.Items {
 			titles = append(titles, item.Title)
 		}
 	}
-
 	return titles
 }
 
-func (fh *FeedParser) getFeedByName(feedName string) *model.Feed {
-	for _, feed := range fh.Feeds {
-		if feed.Title != feedName {
-			continue
+// getFeedByName returns a feed matching the given name.
+func (fp *FeedParser) getFeedByName(feedName string) *model.Feed {
+	for _, feed := range fp.Feeds {
+		if feed.Title == feedName {
+			return feed
 		}
-		return feed
 	}
-
 	return nil
 }
 
-func (fh *FeedParser) GetItemNamesByFeedName(feedName string) []string {
-	feed := fh.getFeedByName(feedName)
+// GetItemNamesByFeedName returns the item titles for a specific feed by its name.
+func (fp *FeedParser) GetItemNamesByFeedName(feedName string) []string {
+	feed := fp.getFeedByName(feedName)
 	if feed == nil {
 		return nil
 	}
@@ -112,163 +117,172 @@ func (fh *FeedParser) GetItemNamesByFeedName(feedName string) []string {
 	for _, item := range feed.Items {
 		titles = append(titles, item.Title)
 	}
-
 	return titles
 }
 
-func (fh *FeedParser) getFeedByIndex(i int) *model.Feed {
-	if i >= 0 && i < len(fh.Feeds) {
-		return fh.Feeds[i]
-	}
-
-	return nil
-}
-
-func (fh *FeedParser) getItemByIndex(i int) *model.Item {
-	if i >= 0 && i < len(fh.getCurrentFeed().Items) {
-		return fh.getCurrentFeed().Items[i]
+// getFeedByIndex returns a feed by its index.
+func (fp *FeedParser) getFeedByIndex(index int) *model.Feed {
+	if index >= 0 && index < len(fp.Feeds) {
+		return fp.Feeds[index]
 	}
 	return nil
 }
 
-func (fh *FeedParser) getCurrentFeed() *model.Feed {
-	return fh.getFeedByIndex(fh.CurrentFeedIndex)
-
+// getItemByIndex returns an item by its index.
+func (fp *FeedParser) getItemByIndex(index int) *model.Item {
+	currentFeed := fp.getCurrentFeed()
+	if currentFeed != nil && index >= 0 && index < len(currentFeed.Items) {
+		return currentFeed.Items[index]
+	}
+	return nil
 }
 
-func (fh *FeedParser) getCurrentItem() *model.Item {
-	return fh.getItemByIndex(fh.CurrentItemIndex)
+// getCurrentFeed returns the current feed.
+func (fp *FeedParser) getCurrentFeed() *model.Feed {
+	return fp.getFeedByIndex(fp.CurrentFeedIndex)
 }
 
-func (fh *FeedParser) GetCurrentFeedName() string {
-	if fh.getCurrentFeed() == nil {
+// getCurrentItem returns the current item.
+func (fp *FeedParser) getCurrentItem() *model.Item {
+	return fp.getItemByIndex(fp.CurrentItemIndex)
+}
+
+// GetCurrentFeedName returns the title of the current feed.
+func (fp *FeedParser) GetCurrentFeedName() string {
+	currentFeed := fp.getCurrentFeed()
+	if currentFeed == nil {
 		return ""
 	}
-
-	return fh.getCurrentFeed().Title
-
+	return currentFeed.Title
 }
 
-func (fh *FeedParser) NextFeed() {
-	if fh.CurrentFeedIndex < len(fh.Feeds)-1 {
-		fh.CurrentFeedIndex = fh.CurrentFeedIndex + 1
+// NextFeed moves to the next feed.
+func (fp *FeedParser) NextFeed() {
+	if fp.CurrentFeedIndex < len(fp.Feeds)-1 {
+		fp.CurrentFeedIndex++
 	}
 }
 
-func (fh *FeedParser) PrevFeed() {
-	if fh.CurrentFeedIndex > 0 {
-		fh.CurrentFeedIndex = fh.CurrentFeedIndex - 1
+// PrevFeed moves to the previous feed.
+func (fp *FeedParser) PrevFeed() {
+	if fp.CurrentFeedIndex > 0 {
+		fp.CurrentFeedIndex--
 	}
 }
 
-func (fh *FeedParser) NextItem() {
-	if fh.CurrentItemIndex < len(fh.GetCurrentFeedItems())-1 {
-		fh.CurrentItemIndex = fh.CurrentItemIndex + 1
+// NextItem moves to the next item.
+func (fp *FeedParser) NextItem() {
+	if fp.CurrentItemIndex < len(fp.GetCurrentFeedItems())-1 {
+		fp.CurrentItemIndex++
 	}
 }
 
-func (fh *FeedParser) PrevItem() {
-	if fh.CurrentItemIndex > 0 {
-		fh.CurrentItemIndex = fh.CurrentItemIndex - 1
+// PrevItem moves to the previous item.
+func (fp *FeedParser) PrevItem() {
+	if fp.CurrentItemIndex > 0 {
+		fp.CurrentItemIndex--
 	}
 }
 
-func (fh *FeedParser) ResetFeedIdx() {
-	fh.CurrentFeedIndex = 0
+// ResetFeedIdx resets the current feed index to zero.
+func (fp *FeedParser) ResetFeedIdx() {
+	fp.CurrentFeedIndex = 0
 }
 
-func (fh *FeedParser) ResetItemIdx() {
-	fh.CurrentItemIndex = 0
+// ResetItemIdx resets the current item index to zero.
+func (fp *FeedParser) ResetItemIdx() {
+	fp.CurrentItemIndex = 0
 }
 
-func (fh *FeedParser) GetCurrentFeedItems() []*model.Item {
-	if fh.getCurrentFeed() == nil {
+// GetCurrentFeedItems returns the items of the current feed.
+func (fp *FeedParser) GetCurrentFeedItems() []*model.Item {
+	currentFeed := fp.getCurrentFeed()
+	if currentFeed == nil {
 		return []*model.Item{}
 	}
-
-	return fh.getCurrentFeed().Items
-
+	return currentFeed.Items
 }
 
-func (fh *FeedParser) GetCurrentFeedItemsName() []string {
-	if fh.getCurrentFeed() == nil {
+// GetCurrentFeedItemsName returns the item titles of the current feed.
+func (fp *FeedParser) GetCurrentFeedItemsName() []string {
+	currentFeed := fp.getCurrentFeed()
+	if currentFeed == nil {
 		return []string{}
 	}
-
-	return fh.getItemsNameFromFeed(fh.getCurrentFeed())
-
+	return fp.getItemsNameFromFeed(currentFeed)
 }
 
-func (fh *FeedParser) GetCurrentFeedItemsNameAndStatus() []string {
-	if fh.getCurrentFeed() == nil {
+// GetCurrentFeedItemsNameAndStatus returns the item titles and their statuses (downloaded or not).
+func (fp *FeedParser) GetCurrentFeedItemsNameAndStatus() []string {
+	currentFeed := fp.getCurrentFeed()
+	if currentFeed == nil {
 		return []string{}
 	}
-
-	return fh.getItemsNameAndStatusFromFeed(fh.getCurrentFeed())
-
+	return fp.getItemsNameAndStatusFromFeed(currentFeed)
 }
 
-func (fh *FeedParser) getItemsNameFromFeed(feed *model.Feed) []string {
+// getItemsNameFromFeed returns the item titles of a specific feed.
+func (fp *FeedParser) getItemsNameFromFeed(feed *model.Feed) []string {
 	var titles []string
 	for _, item := range feed.Items {
 		titles = append(titles, item.Title)
 	}
-
 	return titles
 }
 
-func (fh *FeedParser) getItemsNameAndStatusFromFeed(feed *model.Feed) []string {
+// getItemsNameAndStatusFromFeed returns the item titles and their statuses (downloaded or not).
+func (fp *FeedParser) getItemsNameAndStatusFromFeed(feed *model.Feed) []string {
 	var titles []string
 	for _, item := range feed.Items {
-		t := item.Title
+		title := item.Title
 		if item.LocalFileName != "" {
-			t = "[D] " + t
-
+			title = "[D] " + title
 		}
-		titles = append(titles, t)
+		titles = append(titles, title)
 	}
-
 	return titles
 }
 
-func (fh *FeedParser) GetCurrentItemDescription() string {
-	ci := fh.getCurrentItem()
-	if ci == nil {
+// GetCurrentItemDescription returns the description of the current item.
+func (fp *FeedParser) GetCurrentItemDescription() string {
+	currentItem := fp.getCurrentItem()
+	if currentItem == nil {
 		return ""
 	}
-
-	return ci.Description
-
+	return currentItem.Description
 }
 
-func (fh *FeedParser) GetCurrentItemName() string {
-	ci := fh.getCurrentItem()
-	if ci == nil {
+// GetCurrentItemName returns the title of the current item.
+func (fp *FeedParser) GetCurrentItemName() string {
+	currentItem := fp.getCurrentItem()
+	if currentItem == nil {
 		return ""
 	}
-
-	return ci.Title
+	return currentItem.Title
 }
 
-func (fh *FeedParser) GetCurrentItemUrl() string {
-	ci := fh.getCurrentItem()
-	if ci == nil {
+// GetCurrentItemUrl returns the URL of the current item.
+func (fp *FeedParser) GetCurrentItemUrl() string {
+	currentItem := fp.getCurrentItem()
+	if currentItem == nil {
 		return ""
 	}
-
-	return ci.Url
+	return currentItem.Url
 }
 
-func (fh *FeedParser) SetCurrentItemLocalFileName(fileName string) {
-	ci := fh.getCurrentItem()
-	ci.LocalFileName = fileName
+// SetCurrentItemLocalFileName sets the local file name for the current item.
+func (fp *FeedParser) SetCurrentItemLocalFileName(fileName string) {
+	currentItem := fp.getCurrentItem()
+	if currentItem != nil {
+		currentItem.LocalFileName = fileName
+	}
 }
 
-func (fh *FeedParser) GetCurrentItemLocalFileName() string {
-	ci := fh.getCurrentItem()
-	if ci == nil {
+// GetCurrentItemLocalFileName returns the local file name of the current item.
+func (fp *FeedParser) GetCurrentItemLocalFileName() string {
+	currentItem := fp.getCurrentItem()
+	if currentItem == nil {
 		return ""
 	}
-
-	return ci.LocalFileName
+	return currentItem.LocalFileName
 }
