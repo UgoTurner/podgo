@@ -1,0 +1,21 @@
+version: "2"
+
+run:
+  timeout: 3m
+
+linters:
+  # Standard set (errcheck, govet, ineffassign, staticcheck, unused) plus:
+  enable:
+    - misspell
+    - revive
+  exclusions:
+    rules:
+      # Test files may ignore errors on deliberate best-effort writes.
+      - path: _test\.go
+        linters:
+          - errcheck
+
+formatters:
+  enable:
+    - gofmt
+    - goimports

@@ -1,0 +1,46 @@
+# Build artifacts
+*.exe
+*.exe~
+*.out
+*.test
+*.so
+*.a
+*.o
+
+# Dependency directories
+vendor/
+Gopkg.lock
+Gopkg.toml
+
+# IDE or editor files
+.idea/
+.vscode/
+*.sublime-workspace
+*.sublime-project
+
+# OS generated files
+.DS_Store
+Thumbs.db
+*.swp
+
+# Go workspace
+*.log
+*.cache
+
+# Coverage files
+*.cov
+*.cover
+
+# Others
+*.bin
+*.pid
+*.seed
+
+# Compiled binary
+/podgo
+
+# Runtime storage (keep tracked .keep placeholders)
+storage/tracks/*
+!storage/tracks/.keep
+storage/db/feed/*
+!storage/db/feed/.keep

@@ -1,5 +1,8 @@
+// Package conf holds the app's constants, runtime paths and the embedded
+// panel/keybinding configuration.
 package conf
 
+// View names and titles used across the UI.
 const (
 	SideViewName  = "side"
 	SideViewTitle = "Podcasts"
@@ -18,15 +21,7 @@ const (
 
 	FlashMessageViewName  = "flashmsg"
 	FlashMessageViewTitle = ""
-
-	ConfPanels   = "conf/panels.json"
-	ConfKeybinds = "conf/keybinds.json"
-
-	StoragePath = "./storage/"
-	TracksPath  = StoragePath + "tracks/"
-
-	DbPath = "./storage/db/"
-
-	AppLogFile = "app.log"
-	SgLogFile  = "songocui.log"
 )
+
+// FeedCollection is the Scribble collection name used to store feeds.
+const FeedCollection = "feed"

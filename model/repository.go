@@ -2,42 +2,59 @@ package model
 
 import (
 	"encoding/json"
-	"fmt"
+	"os"
 	"strings"
 
-	scribble "github.com/nanobox-io/golang-scribble"
-
 	"github.com/kennygrant/sanitize"
+	scribble "github.com/nanobox-io/golang-scribble"
+	"github.com/sirupsen/logrus"
+	"github.com/ugoturner/podgo/conf"
 )
 
+// FeedRepository handles CRUD operations for feeds using a Scribble DB.
 type FeedRepository struct {
-	Db *scribble.Driver
+	Db     *scribble.Driver
+	Logger *logrus.Logger
 }
 
-func (fr *FeedRepository) Update(feeds []*Feed) {
+// Update inserts or updates feeds in the Scribble DB.
+func (fr *FeedRepository) Update(feeds []*Feed) error {
 	for _, feed := range feeds {
-		// log.WithFields(log.Fields{
-		// 	"feed.Url":   feed.Url,
-		// 	"feed.Title": feed.Title,
-		// }).Info("Insert new feed")
-		fr.Db.Write("feed", strings.ToLower(sanitize.BaseName(feed.Title)), &feed)
+		feedKey := strings.ToLower(sanitize.BaseName(feed.Title))
+		if err := fr.Db.Write(conf.FeedCollection, feedKey, feed); err != nil {
+			fr.Logger.Errorf("Failed to update feed '%s': %v", feed.Title, err)
+			return err
+		}
 	}
+	return nil
 }
 
-func (fr *FeedRepository) FetchAll() []*Feed {
-	records, err := fr.Db.ReadAll("feed")
+// FetchAll returns every feed stored in the database.
+func (fr *FeedRepository) FetchAll() ([]*Feed, error) {
+	records, err := fr.Db.ReadAll(conf.FeedCollection)
 	if err != nil {
-		fmt.Println("Error", err)
-	}
-
-	feeds := []*Feed{}
-	for _, f := range records {
-		feedFound := Feed{}
-		if err := json.Unmarshal([]byte(f), &feedFound); err != nil {
-			fmt.Println("Error", err)
+		// No collection yet (e.g. first launch, no feeds added) is not an error.
+		if os.IsNotExist(err) {
+			return nil, nil
 		}
-		feeds = append(feeds, &feedFound)
+		fr.Logger.Errorf("Failed to fetch feeds: %v", err)
+		return nil, err
 	}
 
-	return feeds
+	var feeds []*Feed
+	for _, record := range records {
+		if !json.Valid([]byte(record)) {
+			fr.Logger.Warn("Skipping invalid JSON record")
+			continue
+		}
+
+		var feed Feed
+		if err := json.Unmarshal([]byte(record), &feed); err != nil {
+			fr.Logger.Errorf("Failed to parse feed data: %v", err)
+			return nil, err
+		}
+		feeds = append(feeds, &feed)
+	}
+
+	return feeds, nil
 }

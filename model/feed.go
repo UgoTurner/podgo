@@ -1,14 +1,18 @@
+// Package model defines the domain types and the Scribble-backed repository.
 package model
 
+// Feed is a podcast feed and its episodes.
 type Feed struct {
-	Title, Url string
-	Items      []*Item
+	Title string
+	URL   string `json:"Url"`
+	Items []*Item
 }
 
+// Item is a single podcast episode.
 type Item struct {
 	Title         string
 	Description   string
-	Url           string
+	URL           string `json:"Url"`
 	LocalFileName string
 	Playing       bool
 }
