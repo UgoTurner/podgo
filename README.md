@@ -13,8 +13,6 @@ Currently only supports Linux platforms.
 ### From source code
 
 ```bash
-go mod init github.com/ugoturner/podgo
-go mod tidy
 cd podgo
 go build .
 ./podgo
