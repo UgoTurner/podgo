@@ -65,7 +65,7 @@ func (p *Player) Play(path, trackName string, progress playerProgress) error {
 	s, format, err := mp3.Decode(f)
 	if err != nil {
 		p.Logger.WithFields(logrus.Fields{"path": path, "error": err}).Error("Failed to decode MP3 file")
-		return fmt.Errorf("failed to decode MP3 file '%s': %w", path, err)
+		return fmt.Errorf("failed to decode MP3 file '%s': %v", path, err)
 	}
 	defer func() {
 		if closeErr := s.Close(); closeErr != nil {

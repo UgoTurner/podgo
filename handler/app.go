@@ -25,24 +25,24 @@ type App struct {
 // On listens to songocui events and triggers the corresponding actions.
 func (a *App) On(eventName string) error {
 	eventHandlers := map[string]func() error{
-		"Launch":                      a.launch,
-		"Shutdown":                    a.shutdown,
-		"PreviousPodcast":             a.previousPodcast,
-		"NextPodcast":                 a.nextPodcast,
-		"EnterTracksList":             a.enterTracksList,
-		"PreviousTrack":               a.previousTrack,
-		"NextTrack":                   a.nextTrack,
-		"EnterPodcastsList":           a.enterPodcastsList,
-		"DownloadTrack":               func() error { return a.downloadTrack(false) },
-		"EnterTrackDescription":       a.enterTrackDescription,
+		"Launch":                           a.launch,
+		"Shutdown":                         a.shutdown,
+		"PreviousPodcast":                  a.previousPodcast,
+		"NextPodcast":                      a.nextPodcast,
+		"EnterTracksList":                  a.enterTracksList,
+		"PreviousTrack":                    a.previousTrack,
+		"NextTrack":                        a.nextTrack,
+		"EnterPodcastsList":                a.enterPodcastsList,
+		"DownloadTrack":                    func() error { return a.downloadTrack(false) },
+		"EnterTrackDescription":            a.enterTrackDescription,
 		"EnterPodcastsListFromDescription": a.enterPodcastsListFromDescription,
-		"PlayTrack":                   a.playTrack,
-		"TogglePlayPause":             a.togglePlayPause,
-		"SeekForward":                 func() error { return a.seek(10) },
-		"SeekBackward":                func() error { return a.seek(-10) },
-		"AddNewFeed":                  a.addNewFeed,
-		"ConfirmNewFeed":              a.confirmNewFeed,
-		"QuitNewFeed":                 a.quitNewFeed,
+		"PlayTrack":                        a.playTrack,
+		"TogglePlayPause":                  a.togglePlayPause,
+		"SeekForward":                      func() error { return a.seek(10) },
+		"SeekBackward":                     func() error { return a.seek(-10) },
+		"AddNewFeed":                       a.addNewFeed,
+		"ConfirmNewFeed":                   a.confirmNewFeed,
+		"QuitNewFeed":                      a.quitNewFeed,
 	}
 
 	if handler, ok := eventHandlers[eventName]; ok {
@@ -142,7 +142,7 @@ func (a *App) playTrack() error {
 	trackPath := conf.TracksPath + fileName
 	go a.Player.Play(trackPath, trackName, func(status string) {
 		if err := a.TUI.UpdateTextView(conf.FooterViewName, fmt.Sprintf("%s ~ %s", status, a.Player.PlayingTrackName)); err != nil {
-		    a.Logger.Errorf("Failed to update footer view: %v", err)
+			a.Logger.Errorf("Failed to update footer view: %v", err)
 		}
 	})
 	return nil
@@ -168,6 +168,7 @@ func (a *App) downloadTrack(autoPlay bool) error {
 	}
 
 	fileName := a.extractFileName(a.FeedParser.GetCurrentItemUrl())
+	trackName := fmt.Sprintf("%s - %s", a.FeedParser.GetCurrentFeedName(), a.FeedParser.GetCurrentItemName())
 	a.TUI.UpdateTextView(conf.FooterViewName, "Download will start...")
 
 	// Start the download in a goroutine.
@@ -175,10 +176,10 @@ func (a *App) downloadTrack(autoPlay bool) error {
 		conf.TracksPath+fileName,
 		a.FeedParser.GetCurrentItemUrl(),
 		func(progress string) {
-			a.TUI.UpdateTextView(conf.FooterViewName, fmt.Sprintf("Downloading '%s' - %s", fileName, progress))
+			a.TUI.UpdateTextView(conf.FooterViewName, fmt.Sprintf("Downloading '%s' - %s", trackName, progress))
 		},
 		func() {
-			a.TUI.UpdateTextView(conf.FooterViewName, fmt.Sprintf("Successfully downloaded '%s'!", fileName))
+			a.TUI.UpdateTextView(conf.FooterViewName, fmt.Sprintf("Successfully downloaded '%s'!", trackName))
 			a.FeedParser.SetCurrentItemLocalFileName(fileName)
 			a.updateUIWithFeeds()
 			if autoPlay {

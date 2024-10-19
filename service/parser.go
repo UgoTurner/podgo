@@ -12,7 +12,7 @@ type FeedParser struct {
 	Feeds            []*model.Feed
 	CurrentFeedIndex int
 	CurrentItemIndex int
-	Logger         *logrus.Logger
+	Logger           *logrus.Logger
 }
 
 // GetFeeds returns all feeds.
@@ -69,7 +69,7 @@ func (fp *FeedParser) LoadFeedFromUrl(url string) *model.Feed {
 	feedParser := gofeed.NewParser()
 	gFeed, err := feedParser.ParseURL(url)
 	if err != nil {
-		fp.Logger.Warnf("Unable to parse URL: '%s': %w", url, err)
+		fp.Logger.Errorf("Unable to parse URL: '%s': %v", url, err)
 		return nil
 	}
 	feed := fp.extractFeed(gFeed)

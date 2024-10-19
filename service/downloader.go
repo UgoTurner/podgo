@@ -36,8 +36,8 @@ func DownloadFile(filepath string, url string, progress ProgressCallback, succes
 	// Create the output file
 	out, err := os.Create(filepath)
 	if err != nil {
-		logger.Errorf("Failed to create file '%s': %v", filepath, err) // Log the error
-		failure() // Call the failure callback
+		logger.Errorf("Failed to create file '%s': %v", filepath, err)     // Log the error
+		failure()                                                          // Call the failure callback
 		return fmt.Errorf("failed to create file '%s': %w", filepath, err) // Wrap and return the error
 	}
 	defer func() {
@@ -49,8 +49,8 @@ func DownloadFile(filepath string, url string, progress ProgressCallback, succes
 	// Perform the GET request
 	resp, err := http.Get(url)
 	if err != nil {
-		logger.Errorf("Failed to download from URL '%s': %v", url, err) // Log the error
-		failure() // Call the failure callback
+		logger.Errorf("Failed to download from URL '%s': %v", url, err)     // Log the error
+		failure()                                                           // Call the failure callback
 		return fmt.Errorf("failed to download from URL '%s': %w", url, err) // Wrap and return the error
 	}
 	defer func() {
@@ -62,8 +62,8 @@ func DownloadFile(filepath string, url string, progress ProgressCallback, succes
 	// Ensure a valid response code
 	if resp.StatusCode != http.StatusOK {
 		logger.Errorf("Bad status for URL '%s': %s", url, resp.Status) // Log the bad status
-		failure() // Call the failure callback
-		return fmt.Errorf("bad status: %s", resp.Status) // Return an error
+		failure()                                                      // Call the failure callback
+		return fmt.Errorf("bad status: %s", resp.Status)               // Return an error
 	}
 
 	// Track the download progress
@@ -71,8 +71,8 @@ func DownloadFile(filepath string, url string, progress ProgressCallback, succes
 
 	// Copy the response body to the file and track progress
 	if _, err := io.Copy(out, io.TeeReader(resp.Body, counter)); err != nil {
-		logger.Errorf("Failed to copy content to '%s': %v", filepath, err) // Log the error
-		failure() // Call the failure callback
+		logger.Errorf("Failed to copy content to '%s': %v", filepath, err)     // Log the error
+		failure()                                                              // Call the failure callback
 		return fmt.Errorf("failed to copy content to '%s': %w", filepath, err) // Wrap and return the error
 	}
 
