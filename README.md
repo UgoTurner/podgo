@@ -1,12 +1,8 @@
 # Podgo
 
-**Podgo** is a terminal based app that allows you to manage and play your favorite podcasts! It uses the great library [Gocui](https://github.com/jroimartin/gocui) with an extra layer called [Songocui](https://github.com/UgoTurner/songocui) and the feed parser library [Gofeed](https://github.com/mmcdole/gofeed).
+**Podgo** is a terminal-based app for managing and playing podcasts. It uses the [Gocui](https://github.com/jroimartin/gocui) library, wrapped in a custom-built layer called [Songocui](https://github.com/UgoTurner/songocui), and handles feed parsing with [Gofeed](https://github.com/mmcdole/gofeed).
 
 ![Layout](./screenshot.png)
-
-## Support
-
-Currently only supports Linux platforms.
 
 ## Installation
 
@@ -21,11 +17,10 @@ go build .
 ## Usage
 
 ### Layout
-The terminal is split in 3 different panels :
-1. **Podcasts list (side panel)** which contains the list of the user's saved podcasts.
-2. **Tracks list (main panel)** which contains the tracks list of a selected podcast.
-3. **Summary (footer panel)** which displays the player and the prompt when an action is required.
-
+The terminal is divided into three panels:
+1. **Podcasts list (side panel)**: Displays the user's saved podcasts.
+2. **Tracks list (main panel)**: Shows the track list for the selected podcast.
+3. **Summary (footer panel)**: Contains the player and shows prompts when actions are required.
 
 ### Key bindings
 
